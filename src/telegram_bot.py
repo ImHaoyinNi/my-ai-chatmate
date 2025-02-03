@@ -1,7 +1,7 @@
 import io
-from telegram import Update, File, InputFile
+from telegram import Update, File
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from src.service.message_processor import MessageProcessor
+from src.message_processor import MessageProcessor
 
 
 class TelegramBot:

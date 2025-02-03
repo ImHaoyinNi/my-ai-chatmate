@@ -1,8 +1,8 @@
 import io
 
 from src.service.api.ollama_api import ollama_api
-from src.service.user_session.user_session import UserSessionManager, UserSession
-from src.service.utils import remove_think_tag
+from src.service.user_session.user_session import UserSession
+from src.utils import remove_think_tag
 
 
 class AIService:
