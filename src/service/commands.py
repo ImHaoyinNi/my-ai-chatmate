@@ -1,17 +1,20 @@
 from enum import Enum
 
-from src.service.user_session.personality import get_personality_prompt
-from src.service.user_session.user_session import UserSessionManager
+from src.service.persona import get_persona_prompt, get_persona_types
+from src.service.user_session import UserSessionManager
 
 
 class COMMAND(Enum):
     HELP = "help"
     GET_CONTEXT = "get-context"
     CLEAR_CONTEXT = "clear-context"
-    GET_PERSONALITY = "get-personality"
-    SET_PERSONALITY = "set-personality"
-    ENABLE_VOICE = "enable_voice"
-    DISABLE_VOICE = "disable_voice"
+    MY_CHATID = "my-chatid"
+    GET_PERSONA = "get-persona"
+    SET_PERSONA = "set-persona"
+    ENABLE_VOICE = "enable-voice"
+    DISABLE_VOICE = "disable-voice"
+    ENABLE_PUSH = "enable-push"
+    DISABLE_PUSH = "disable-push"
 
 def run_command(user_id, command: str, arguments: list[str]) -> str:
     user_session = UserSessionManager.get_session(user_id)
@@ -24,12 +27,14 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
         case COMMAND.CLEAR_CONTEXT.value:
             user_session.clear_context()
             return "session cleared"
-        case COMMAND.GET_PERSONALITY.value:
-            personality = "Personality: " + user_session.personality
-            prompt = "Prompt: " + get_personality_prompt(user_session.personality)
+        case COMMAND.MY_CHATID.value:
+            return f"Your id is: {user_id}"
+        case COMMAND.GET_PERSONA.value:
+            personality = "Personality: " + user_session.persona
+            prompt = "Prompt: " + get_persona_prompt(user_session.persona)
             return personality + "\n" + prompt
-        case COMMAND.SET_PERSONALITY.value:
-            user_session.set_personality(arguments[0])
+        case COMMAND.SET_PERSONA.value:
+            user_session.set_persona(arguments[0])
             return "personality set to " + arguments[0]
         case COMMAND.ENABLE_VOICE.value:
             user_session.reply_with_voice = True
@@ -37,6 +42,12 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
         case COMMAND.DISABLE_VOICE.value:
             user_session.reply_with_voice = False
             return "voice is disabled. Bot will now reply with text."
+        case COMMAND.ENABLE_PUSH.value:
+            user_session.enable_push = True
+            return "push is enabled. Bot will now initiate conversation."
+        case COMMAND.DISABLE_PUSH.value:
+            user_session.enable_push = False
+            return "push is disabled. Bot will not initiate conversation."
         case _:
             return "unknown command"
 
@@ -55,7 +66,7 @@ def format_context(context: list[object]) -> str:
     return formatted_context
 
 def help_doc():
-    doc = """Available Commands:
+    doc = f"""Available Commands:
     /help
         Display this help message with all available commands
 
@@ -65,16 +76,23 @@ def help_doc():
     /clear-context
         Clear all conversation history and start fresh
 
-    /get-personality
+    /get-persona
         Display the currently active personality setting
 
-    /set-personality
-        Change the active personality
+    /set-persona
+        Available persona: {get_persona_types()}
         Usage: /set-personality chick
 
     /enable-voice
         Enable voice interaction mode
 
     /disable-voice
-        Disable voice interaction mode and return to text-only"""
+        Disable voice interaction mode and return to text-only
+        
+    /enable-push
+        Bot may initiate a conversation
+
+    /disable-voice
+        Bot won't initiate a conversation
+    """
     return doc

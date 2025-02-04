@@ -1,7 +1,7 @@
 import io
 from abc import ABC, abstractmethod
 
-from src.service.type.constants import Speaker
+from src.constants import Speaker
 
 
 class VoiceAPIInterface(ABC):
@@ -10,5 +10,5 @@ class VoiceAPIInterface(ABC):
         pass
 
     @abstractmethod
-    def text2audio(self, text, speaker: Speaker) -> io.BytesIO:
+    def text2audio(self, text, speaker: Speaker=Speaker.WOMAN) -> io.BytesIO:
         pass

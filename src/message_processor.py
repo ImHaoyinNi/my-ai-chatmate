@@ -1,9 +1,8 @@
 import io
 
-from src.service.ai_service.image_ai import ImageAI
-from src.service.ai_service.ai_service import aiService
-from src.service.commands.commands import run_command
-from src.service.user_session.user_session import UserSessionManager
+from src.service.ai_service import aiService
+from src.service.commands import run_command
+from src.service.user_session import UserSessionManager
 
 
 class MessageProcessor:
@@ -22,8 +21,7 @@ class MessageProcessor:
 
     @staticmethod
     def process_image(user_id, image_file):
-        description = ImageAI.analyze(image_file)
-        return f"I see: {description}"
+        return f"I see: image"
 
     @staticmethod
     def process_command(user_id, command) -> str:

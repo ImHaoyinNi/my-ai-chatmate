@@ -10,20 +10,22 @@ from pydub import AudioSegment
 
 from src.service.api.text_api_interface import TextAPIInterface
 from src.service.api.voice_api_interface import VoiceAPIInterface
-from src.service.type.constants import Speaker
-import torch
+from src.constants import Speaker
 
 
 class OllamaApi(TextAPIInterface, VoiceAPIInterface):
+    @property
+    def api_name(self):
+        return "Ollama API"
+
     def __init__(self, text_model="deepseek-r1:7b", api_url="http://localhost:11434/api/chat"):
         self._text_model = text_model
         self._whisper_model = None
         self.api_url = api_url
-        self.api_name = "ollama"
+        self._api_name = "ollama"
 
     # TextAI interface
     def generate_text_response(self, context: list[object]) -> str:
-        print(f"{self.api_name} generating text response...")
         response = requests.post(self.api_url,
                                  json={"model": self._text_model,
                                        "messages": context,
@@ -86,5 +88,6 @@ class OllamaApi(TextAPIInterface, VoiceAPIInterface):
         duration = round(end_time - start_time, 1)
         print(f"{self.api_name} finished text2audio. Duration: {duration} seconds")
         return ogg_buffer
+
 
 ollama_api = OllamaApi()

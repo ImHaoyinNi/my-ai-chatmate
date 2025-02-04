@@ -9,7 +9,7 @@ class Role(Enum):
 class Speaker(Enum):
     WOMAN = "v2/en_speaker_9"
 
-def new_message(role: Role, content: str) -> object:
+def new_message(role: Role, content: str) -> dict:
     message = {
         "role": role.value,
         "content": content
