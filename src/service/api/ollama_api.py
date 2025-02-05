@@ -8,12 +8,12 @@ from bark import generate_audio
 import soundfile as sf
 from pydub import AudioSegment
 
-from src.service.api.text_api_interface import TextAPIInterface
-from src.service.api.voice_api_interface import VoiceAPIInterface
+from src.service.api.interface.llm_api_interface import LLMAPIInterface
+from src.service.api.interface.voice_api_interface import VoiceAPIInterface
 from src.constants import Speaker
 
 
-class OllamaApi(TextAPIInterface, VoiceAPIInterface):
+class OllamaApi(LLMAPIInterface, VoiceAPIInterface):
     @property
     def api_name(self):
         return "Ollama API"

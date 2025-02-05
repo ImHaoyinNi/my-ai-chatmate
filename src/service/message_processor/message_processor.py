@@ -1,22 +1,22 @@
 import io
-
 from src.service.ai_service import aiService
 from src.service.commands import run_command
+from src.service.message_processor.Reply import Reply
 from src.service.user_session import UserSessionManager
 
 
 class MessageProcessor:
     @staticmethod
-    def process_text(user_id, text):
+    def process_text(user_id, text) -> Reply:
         user_session = UserSessionManager.get_session(user_id)
-        response = aiService.generate_response(user_session, text)
+        response = aiService.generate_reply(user_session, text)
         return response
 
     @staticmethod
     def process_voice(user_id, voice_buffer: io.BytesIO):
         text = aiService.transcribe(voice_buffer)
         user_session = UserSessionManager.get_session(user_id)
-        response = aiService.generate_response(user_session, text)
+        response = aiService.generate_reply(user_session, text)
         return response
 
     @staticmethod

@@ -13,7 +13,7 @@ async def send_random_message(context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             if user_session.enable_push:
                 prompt = f"Hi Babe! How u doing?"
-                message = aiService.generate_response(user_session, prompt)
+                message = aiService.generate_reply(user_session, prompt)
                 await context.bot.send_message(chat_id=user_session.user_id, text=message)
         except Exception as e:
             print(f"Error [random_message] {user_session.user_id}: {str(e)}")

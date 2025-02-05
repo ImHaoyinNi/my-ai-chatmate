@@ -47,7 +47,7 @@ class PushService:
         for user_session in idle_users:
             try:
                 prompt = f"Hi Babe! How u doing?"
-                message = aiService.generate_response(user_session, prompt)
+                message = aiService.generate_reply(user_session, prompt)
                 await self.app.bot.send_message(
                     chat_id=user_session.user_id,
                     text=message,

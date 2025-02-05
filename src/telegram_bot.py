@@ -4,8 +4,9 @@ import os
 from dotenv import load_dotenv
 from telegram import Update, File
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from src.message_processor import MessageProcessor
 from src.service.job import send_random_message
+from src.service.message_processor.Reply import ReplyType
+from src.service.message_processor.message_processor import MessageProcessor
 
 
 # job_queue_started = False
@@ -74,14 +75,14 @@ class TelegramBot:
     async def handle_text(update: Update, context: CallbackContext):
         user_id = update.message.chat_id
         text = update.message.text
-        response = MessageProcessor.process_text(user_id, text)
-        if type(response) == str:
-            await context.bot.send_message(chat_id=user_id, text=response)
-        elif type(response) == io.BytesIO:
-            response.seek(0)
-            await context.bot.send_voice(chat_id=user_id, voice=response)
-        else:
-            await context.bot.send_message(chat_id=user_id, text="Bad response")
+        reply = MessageProcessor.process_text(user_id, text)
+        match reply.reply_type:
+            case ReplyType.TEXT:
+                await context.bot.send_message(chat_id=user_id, text=reply.content)
+            case ReplyType.VOICE:
+                await context.bot.send_voice(chat_id=user_id, voice=reply.content)
+            case _:
+                await context.bot.send_message(chat_id=user_id, text="Bad reply")
 
     @staticmethod
     async def handle_voice(update: Update, context: CallbackContext):
