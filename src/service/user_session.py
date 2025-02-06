@@ -8,7 +8,7 @@ class UserSession:
     def __init__(self, user_id: int):
         self.user_id: int = user_id
         self._reply_with_voice: bool = False
-        self._enable_push: bool = False
+        self._enable_push: bool = True
         self._last_active: float = -1
         self._max_context: int = 20
 
@@ -39,6 +39,13 @@ class UserSession:
     def clear_context(self):
         self.context.clear()
         self.context.append(self.system_message)
+
+    def is_idle(self, hour: int, minute: int = 0) -> bool:
+        idle_time = time.time() - self._last_active
+        if idle_time >= minute * 60 + hour * 3600:
+            return True
+        else:
+            return False
 
     @property
     def reply_with_voice(self):
@@ -75,7 +82,7 @@ class UserSessionManager:
         return list(UserSessionManager.sessions.values())
 
     @staticmethod
-    def get_idle_user_session(hours: int, minutes:int = 0) -> list[UserSession]:
+    def get_idle_user_session(hours: int, minutes: int = 0) -> list[UserSession]:
         idle_sessions: list[UserSession] = []
         for user_session in UserSessionManager.sessions.values():
             if time.time() - user_session.last_active > 3600 * hours + 60 * minutes:

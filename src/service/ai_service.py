@@ -37,8 +37,7 @@ class AIService:
         user_session.add_bot_context(res)
         return res
 
-    def generate_voice_response(self, user_session: UserSession, text) -> io.BytesIO:
-        text = "I love you!"
+    def generate_voice_response(self, user_session: UserSession, text: str) -> io.BytesIO:
         audio_file = self.tts_api.text2audio(text)
         return audio_file
 

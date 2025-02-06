@@ -7,13 +7,13 @@ from src.service.user_session import UserSessionManager
 
 class MessageProcessor:
     @staticmethod
-    def process_text(user_id, text) -> Reply:
+    def process_text(user_id: int, text: str) -> Reply:
         user_session = UserSessionManager.get_session(user_id)
         response = aiService.generate_reply(user_session, text)
         return response
 
     @staticmethod
-    def process_voice(user_id, voice_buffer: io.BytesIO):
+    def process_voice(user_id: int, voice_buffer: io.BytesIO):
         text = aiService.transcribe(voice_buffer)
         user_session = UserSessionManager.get_session(user_id)
         response = aiService.generate_reply(user_session, text)

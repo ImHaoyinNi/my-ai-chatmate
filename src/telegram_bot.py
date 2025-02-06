@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 from telegram import Update, File
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from src.service.job import send_random_message
+
+from src.service.behavior.behavior import push_message
 from src.service.message_processor.Reply import ReplyType
 from src.service.message_processor.message_processor import MessageProcessor
 
@@ -104,9 +105,7 @@ class TelegramBot:
     @staticmethod
     async def set_job(update: Update, context: CallbackContext) -> None:
         chat_id = update.message.chat_id
-        context.job_queue.run_repeating(send_random_message, interval=10, first=0, data={"chat_id": chat_id})
-        if update:
-            await update.message.reply_text('Job has been set! I will send a random message every 10 seconds.')
+        context.job_queue.run_repeating(push_message, interval=10, first=0, data={"chat_id": chat_id})
 
     def register_handlers(self):
         self.app.add_handler(CommandHandler("start", TelegramBot.set_job))
@@ -120,15 +119,12 @@ class TelegramBot:
         print("Starting telegram bot")
         job_queue = self.app.job_queue
         # job_queue.run_daily(send_daily_update, time=time(hour=9, minute=0, second=0))
-        job_queue.run_repeating(send_random_message, interval=10, first=0)
+        job_queue.run_repeating(push_message, interval=10, first=0)
         self.app.run_polling()
 
-
-def main():
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    bot = TelegramBot(token)
-    bot.start()
+load_dotenv()
+token = os.getenv("TELEGRAM_BOT_TOKEN")
+bot = TelegramBot(token)
 
 if __name__ == '__main__':
-    load_dotenv()
-    main()
+    bot.start()
