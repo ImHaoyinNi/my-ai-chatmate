@@ -33,7 +33,7 @@ class AIService:
         res = self.llm_api.generate_text_response(user_session.context)
         end_time = time.time()
         duration = round(end_time - start_time, 1)
-        logger.info(f"{self.llm_api.api_name} takes {duration} seconds to generate")
+        logger.info(f"{self.llm_api.api_name} takes {duration} seconds to generate text")
         res = remove_think_tag(res)
         user_session.add_bot_context(res)
         return res
