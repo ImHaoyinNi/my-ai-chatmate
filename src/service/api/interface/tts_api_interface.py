@@ -8,5 +8,5 @@ class TTSAPIInterface(ABC):
         pass
 
     @abstractmethod
-    def text_to_speech(self, text: str, speaker: str) -> io.BytesIO:
+    def text_to_speech(self, text: str, voice_id: str) -> io.BytesIO:
         pass

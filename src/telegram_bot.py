@@ -6,7 +6,9 @@ from telegram import Update, File
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 from src.service.behavior.behavior import push_message
-from src.service.message_processor.Reply import ReplyType
+from src.config import config
+from src.service.logger import logger
+from src.service.message_processor.Message import MessageType
 from src.service.message_processor.message_processor import MessageProcessor
 
 
@@ -77,10 +79,10 @@ class TelegramBot:
         user_id = update.message.chat_id
         text = update.message.text
         reply = MessageProcessor.process_text(user_id, text)
-        match reply.reply_type:
-            case ReplyType.TEXT:
+        match reply.message_type:
+            case MessageType.TEXT:
                 await context.bot.send_message(chat_id=user_id, text=reply.content)
-            case ReplyType.VOICE:
+            case MessageType.VOICE:
                 await context.bot.send_voice(chat_id=user_id, voice=reply.content)
             case _:
                 await context.bot.send_message(chat_id=user_id, text="Bad reply")
@@ -113,14 +115,14 @@ class TelegramBot:
         self.app.add_handler(MessageHandler(filters.VOICE, TelegramBot.handle_voice))
         self.app.add_handler(MessageHandler(filters.PHOTO, TelegramBot.handle_photo))
         self.app.add_handler(MessageHandler(filters.COMMAND, TelegramBot.handle_command))
-        print("Registering handlers finished")
+        logger.info("Registering handlers finished")
 
     def start(self):
-        print("Starting telegram bot")
+        logger.info("Starting telegram bot")
         job_queue = self.app.job_queue
-        # job_queue.run_daily(send_daily_update, time=time(hour=9, minute=0, second=0))
-        job_queue.run_repeating(push_message, interval=10, first=0)
+        job_queue.run_repeating(push_message, interval=config.behavior_settings['interval'], first=0)
         self.app.run_polling()
+
 
 load_dotenv()
 token = os.getenv("TELEGRAM_BOT_TOKEN")

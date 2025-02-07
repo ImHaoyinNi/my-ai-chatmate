@@ -6,7 +6,8 @@ from src.service.api.aws_api import aws_api
 from src.service.api.interface.tts_api_interface import TTSAPIInterface
 from src.service.api.nvidia_playground_api import nvdia_playground_api
 from src.service.api.interface.llm_api_interface import LLMAPIInterface
-from src.service.message_processor.Reply import Reply, ReplyType
+from src.service.logger import logger
+from src.service.message_processor.Message import Message, MessageType
 from src.service.user_session import UserSession
 from src.utils import remove_think_tag
 
@@ -16,29 +17,29 @@ class AIService:
         self.llm_api: LLMAPIInterface = nvdia_playground_api
         self.tts_api: TTSAPIInterface = aws_api
 
-    def generate_reply(self, user_session: UserSession, text) -> Reply:
+    def generate_reply(self, user_session: UserSession, text) -> Message:
         text = self.generate_text_response(user_session, text)
         text = remove_think_tag(text)
         if user_session.reply_with_voice:
             voice = self.tts_api.text_to_speech(text, "Ruth")
-            return Reply(ReplyType.VOICE, voice)
+            return Message(MessageType.VOICE, voice)
         else:
-            return Reply(ReplyType.TEXT, text)
+            return Message(MessageType.TEXT, text)
 
     def generate_text_response(self, user_session: UserSession, prompt: str) -> str:
         user_session.add_user_context(prompt)
         start_time = time.time()
-        print(f"{self.llm_api.api_name} generating text response...")
+        logger.info(f"{self.llm_api.api_name} generating text response...")
         res = self.llm_api.generate_text_response(user_session.context)
         end_time = time.time()
         duration = round(end_time - start_time, 1)
-        print(f"{self.llm_api.api_name} takes {duration} seconds to generate")
+        logger.info(f"{self.llm_api.api_name} takes {duration} seconds to generate")
         res = remove_think_tag(res)
         user_session.add_bot_context(res)
         return res
 
     def generate_voice_response(self, user_session: UserSession, text: str) -> io.BytesIO:
-        audio_file = self.tts_api.text2audio(text)
+        audio_file = self.tts_api.text_to_speech(text, voice_id="Ruth")
         return audio_file
 
     def transcribe(self, voice_buffer: io.BytesIO):
@@ -72,7 +73,6 @@ if __name__ == "__main__":
                {"role": "assistant", "content": "Drinking a coffee"}]
     user_session.context = context
     prompt = aiService.chat2sd_prompt(user_session)
-    # aiService.
     print(aiService.chat2sd_prompt(user_session))
     # print(user_session.context)
 

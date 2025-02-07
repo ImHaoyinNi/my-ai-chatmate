@@ -1,5 +1,4 @@
 import base64
-import io
 import os
 
 import requests
@@ -10,7 +9,7 @@ from src.service.api.interface.llm_api_interface import LLMAPIInterface
 from dotenv import load_dotenv
 
 from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterface
-from src.service.api.interface.tts_api_interface import TTSAPIInterface
+from src.config import config
 from src.utils import compress_base64_image, save_base64_as_png
 
 
@@ -21,11 +20,11 @@ class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPI
 
     def __init__(self,
                  api_url="https://integrate.api.nvidia.com/v1",
-                 text_model="deepseek-ai/deepseek-r1",
+                 llm_name="deepseek-ai/deepseek-r1",
                  image2text_api_url="https://ai.api.nvidia.com/v1/gr/meta/llama-3.2-90b-vision-instruct/chat/completions",
                  text2image_api_url="https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-xl"
                  ):
-        self._text_model = text_model
+        self._text_model = llm_name
         self._api_url = api_url
         self._api_name = "nvidia playground"
         load_dotenv()
@@ -119,7 +118,14 @@ class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPI
             img_base64 = img_data["base64"]
         return img_base64
 
-nvdia_playground_api = NvidiaPlaygroundAPI()
+
+nvdia_playground_api = NvidiaPlaygroundAPI(
+    api_url=config.nvidia_api_settings["llm_api_url"],
+    llm_name=config.nvidia_api_settings["llm_name"],
+    image2text_api_url=config.nvidia_api_settings["image2text_api_url"],
+    text2image_api_url=config.nvidia_api_settings["text2image_api_url"],
+)
+
 
 if __name__ == '__main__':
     with open("./9.JPG", "rb") as f:

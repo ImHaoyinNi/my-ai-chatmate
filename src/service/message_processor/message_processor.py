@@ -1,13 +1,13 @@
 import io
 from src.service.ai_service import aiService
 from src.service.commands import run_command
-from src.service.message_processor.Reply import Reply
+from src.service.message_processor.Message import Message
 from src.service.user_session import UserSessionManager
 
 
 class MessageProcessor:
     @staticmethod
-    def process_text(user_id: int, text: str) -> Reply:
+    def process_text(user_id: int, text: str) -> Message:
         user_session = UserSessionManager.get_session(user_id)
         response = aiService.generate_reply(user_session, text)
         return response

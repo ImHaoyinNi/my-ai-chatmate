@@ -11,6 +11,7 @@ from pydub import AudioSegment
 from src.service.api.interface.llm_api_interface import LLMAPIInterface
 from src.service.api.interface.voice_api_interface import VoiceAPIInterface
 from src.constants import Speaker
+from src.service.logger import logger
 
 
 class OllamaApi(LLMAPIInterface, VoiceAPIInterface):
@@ -34,10 +35,10 @@ class OllamaApi(LLMAPIInterface, VoiceAPIInterface):
                                        })
         if response.status_code == 200:
             res = response.json()
-            print(f"{self.api_name} finished generating text response. Duration: {res.get('total_duration') / 1_000_000_000} seconds")
+            logger.info(f"{self.api_name} finished generating text response. Duration: {res.get('total_duration') / 1_000_000_000} seconds")
             return res.get("message").get('content')
         else:
-            print(f"Error querying model {self._text_model}: {response.status_code}, {response.text}")
+            logger.info(f"Error querying model {self._text_model}: {response.status_code}, {response.text}")
             return ""
 
     # VoiceAI interface

@@ -1,0 +1,17 @@
+{
+  "nvidia_api_settings": {
+    "llm_api_url": "https://integrate.api.nvidia.com/v1",
+    "llm_name": "deepseek-ai/deepseek-r1",
+    "image2text_api_url": "https://ai.api.nvidia.com/v1/gr/meta/llama-3.2-90b-vision-instruct/chat/completions",
+    "text2image_api_url": "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-xl"
+  },
+  "behavior_settings": {
+    "interval": 300,
+    "idle_hour": 2,
+    "idle_minute": 0
+  },
+  "default_persona": "civen",
+  "persona_civen": {
+    "speaker": ""
+  }
+}

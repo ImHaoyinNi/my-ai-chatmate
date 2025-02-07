@@ -1,7 +1,8 @@
 import time
 
 from src.constants import new_message, Role
-from src.service.persona import Personality, get_persona_prompt
+from src.config import config
+from src.service.persona import get_persona_prompt
 
 
 class UserSession:
@@ -12,9 +13,10 @@ class UserSession:
         self._last_active: float = -1
         self._max_context: int = 20
 
-        self.persona: str = Personality.DEFAULT.value
         self.system_message: dict = new_message(Role.SYSTEM, "")
         self.context: list[dict] = [self.system_message]
+        self.persona = config.default_persona
+        self.set_persona(self.persona)
 
     def add_user_context(self, user_input: str):
         self.context.append(new_message(Role.USER, user_input))

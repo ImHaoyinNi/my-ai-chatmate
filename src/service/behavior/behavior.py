@@ -1,11 +1,13 @@
-from src.service.ai_service import aiService
-from src.service.behavior.active_behavior import SendTextMessage
-from src.service.user_session import UserSessionManager, UserSession
+import random
+
+from src.service.behavior.active_behavior import SendTextMessage, ReadNews
+from src.service.logger import logger
+from src.service.user_session import UserSession
 
 import py_trees
 from src.service.user_session import UserSessionManager
-from telegram.ext import CallbackContext, ContextTypes
-import asyncio
+from telegram.ext import ContextTypes
+
 
 class IsUserIdle(py_trees.behaviour.Behaviour):
     def __init__(self, user_session: UserSession):
@@ -13,7 +15,7 @@ class IsUserIdle(py_trees.behaviour.Behaviour):
         self.user_session = user_session
 
     def update(self):
-        print(self.name)
+        logger.info(f"Behavior update: {self.name}")
         if self.user_session.is_idle(0, 0):
             return py_trees.common.Status.SUCCESS
         else:
@@ -31,14 +33,33 @@ class IsPushEnabled(py_trees.behaviour.Behaviour):
         else:
             return py_trees.common.Status.FAILURE
 
+class RandomSelector(py_trees.behaviour.Behaviour):
+    def __init__(self, name, behaviors):
+        super(RandomSelector, self).__init__(name)
+        self.behaviors = behaviors
+        self.selected_behavior = None
+
+    def setup(self, timeout):
+        self.selected_behavior = random.choice(self.behaviors)
+
+    def initialise(self):
+        self.selected_behavior = random.choice(self.behaviors)
+
+    def update(self):
+        if self.selected_behavior:
+            self.selected_behavior.tick_once()
+            return self.selected_behavior.status
+        return py_trees.common.Status.FAILURE
+
 def create_behavior_tree(user_session, bot):
     root = py_trees.composites.Sequence("Push Notification Decision", memory=True)
-    is_idle = IsUserIdle(user_session)
     is_push_enabled = IsPushEnabled(user_session)
     send_message = SendTextMessage(user_session, bot)
-    root.add_children([is_idle, is_push_enabled, send_message])
+    read_news = ReadNews(user_session, bot)
+    random_choice = RandomSelector("Random Choice", [read_news, send_message])
+    root.add_children([is_push_enabled, random_choice])
     behavior_tree = py_trees.trees.BehaviourTree(root)
-    print(py_trees.display.ascii_tree(root))
+    logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
 
 async def push_message(context: ContextTypes.DEFAULT_TYPE) -> None:

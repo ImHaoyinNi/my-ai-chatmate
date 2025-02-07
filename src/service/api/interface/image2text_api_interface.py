@@ -1,4 +1,3 @@
-import base64
 from abc import ABC, abstractmethod
 
 class Image2TextAPIInterface(ABC):

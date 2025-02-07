@@ -1,3 +1,5 @@
+import logging
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import pytz
@@ -39,7 +41,7 @@ class PushService:
                         parse_mode='Markdown'
                     )
                 except Exception as e:
-                    print(f"[Push Error] {user_session.user_id}: {str(e)}")
+                    logging.error(f"[Push Error] {user_session.user_id}: {str(e)}")
                     await self.handle_push_failure(user_session, "Error: " + str(e))
 
     async def push_random_updates(self):

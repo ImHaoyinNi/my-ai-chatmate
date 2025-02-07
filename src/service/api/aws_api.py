@@ -5,6 +5,7 @@ import boto3
 from dotenv import load_dotenv
 
 from src.service.api.interface.tts_api_interface import TTSAPIInterface
+from src.config import config
 from src.utils import english_or_chinese
 
 
@@ -24,7 +25,7 @@ class AwsApi(TTSAPIInterface):
         )
         self.polly = self._session.client('polly')
 
-    def text_to_speech(self, text: str, voice: str) -> io.BytesIO:
+    def text_to_speech(self, text: str, voice_id: str) -> io.BytesIO:
         lang_code = english_or_chinese(text)
         voice_id = "Ruth" if lang_code == "en" else "Zhiyu"
         res = self.polly.synthesize_speech(
@@ -34,12 +35,13 @@ class AwsApi(TTSAPIInterface):
             Engine="neural"
         )
         if "AudioStream" in res:
-            # return io.BytesIO(res["AudioStream"].read())
+            if config.env == "production":
+                return io.BytesIO(res["AudioStream"].read())
             process = subprocess.run(
                 ["ffmpeg", "-i", "pipe:0", "-c:a", "libopus", "-b:a", "32k", "-f", "ogg", "pipe:1"],
                 input=res["AudioStream"].read(),
                 stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL  # Suppress errors
+                stderr=subprocess.DEVNULL
             )
             return io.BytesIO(process.stdout)
         else:
