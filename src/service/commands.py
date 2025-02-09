@@ -8,7 +8,9 @@ class COMMAND(Enum):
     HELP = "help"
     GET_CONTEXT = "get-context"
     CLEAR_CONTEXT = "clear-context"
-    MY_CHATID = "my-chatid"
+    MY_CHATID = "get-my-chatid"
+
+    GET_MY_SESSION = "get-my-session"
     GET_PERSONA = "get-persona"
     SET_PERSONA = "set-persona"
     ENABLE_VOICE = "enable-voice"
@@ -29,6 +31,8 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
             return "session cleared"
         case COMMAND.MY_CHATID.value:
             return f"Your id is: {user_id}"
+        case COMMAND.GET_MY_SESSION.value:
+            return user_session.to_string()
         case COMMAND.GET_PERSONA.value:
             personality = "Personality: " + user_session.persona
             prompt = "Prompt: " + get_persona_prompt(user_session.persona)
@@ -69,13 +73,15 @@ def help_doc():
     doc = f"""Available Commands:
     /help
         Display this help message with all available commands
-
     /get-context
         Show the current conversation context and history
-
     /clear-context
         Clear all conversation history and start fresh
-
+    /get-my-session:
+        Display the current conversation settings
+    /get-my-chatid:
+        Display your user id
+        
     /get-persona
         Display the currently active personality setting
 

@@ -1,6 +1,9 @@
 import base64
+import datetime
 import io
 import re
+
+import pytz
 from langdetect import detect
 from PIL import Image
 from promptgen import generate_prompts
@@ -10,6 +13,11 @@ from src.service.persona import get_persona_prompt
 
 def remove_think_tag(text: str):
     return re.sub(r'(?s)<think>.*?</think>', '', text).strip()
+
+def get_current_time(timezone="America/Chicago") -> (int, int):
+    tz = pytz.timezone(timezone)
+    now = datetime.datetime.now(tz)  # Get the current time once
+    return now.hour, now.minute
 
 def english_or_chinese(text: str):
     return detect(text)

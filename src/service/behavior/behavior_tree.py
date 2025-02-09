@@ -1,37 +1,15 @@
 import random
 
-from src.service.behavior.active_behavior import SendTextMessage, ReadNews
+from py_trees.trees import BehaviourTree
+
+from src.service.behavior.active_behavior import StartConversation, ReadNews, Greetings
+from src.service.behavior.condition_node import IsPushEnabled, IsAwakeTime
 from src.service.logger import logger
-from src.service.user_session import UserSession
 
 import py_trees
-from src.service.user_session import UserSessionManager
+from src.service.user_session import UserSessionManager, UserSession
 from telegram.ext import ContextTypes
 
-
-class IsUserIdle(py_trees.behaviour.Behaviour):
-    def __init__(self, user_session: UserSession):
-        super(IsUserIdle, self).__init__(name="Is User Idle?")
-        self.user_session = user_session
-
-    def update(self):
-        logger.info(f"Behavior update: {self.name}")
-        if self.user_session.is_idle(0, 0):
-            return py_trees.common.Status.SUCCESS
-        else:
-            return py_trees.common.Status.FAILURE
-
-class IsPushEnabled(py_trees.behaviour.Behaviour):
-    def __init__(self, user_session):
-        super(IsPushEnabled, self).__init__(name="Is Push Enabled?")
-        self.user_session = user_session
-
-    def update(self):
-        print(self.name)
-        if self.user_session.enable_push:
-            return py_trees.common.Status.SUCCESS
-        else:
-            return py_trees.common.Status.FAILURE
 
 class RandomSelector(py_trees.behaviour.Behaviour):
     def __init__(self, name, behaviors):
@@ -51,13 +29,23 @@ class RandomSelector(py_trees.behaviour.Behaviour):
             return self.selected_behavior.status
         return py_trees.common.Status.FAILURE
 
-def create_behavior_tree(user_session, bot):
+def create_behavior_tree(user_session: UserSession, bot):
     root = py_trees.composites.Sequence("Push Notification Decision", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
-    send_message = SendTextMessage(user_session, bot)
+    is_awake_time = IsAwakeTime(user_session)
+    send_message = StartConversation(user_session, bot)
     read_news = ReadNews(user_session, bot)
     random_choice = RandomSelector("Random Choice", [read_news, send_message])
-    root.add_children([is_push_enabled, random_choice])
+    root.add_children([is_push_enabled, is_awake_time, random_choice])
+    behavior_tree = py_trees.trees.BehaviourTree(root)
+    logger.info(py_trees.display.ascii_tree(root))
+    return behavior_tree
+
+def create_greeting_tree(user_session: UserSession, bot) -> BehaviourTree:
+    root = py_trees.composites.Sequence("Say Greetings Behavior Tree", memory=True)
+    is_push_enabled = IsPushEnabled(user_session)
+    greeting = Greetings(user_session, bot)
+    root.add_children([is_push_enabled, greeting])
     behavior_tree = py_trees.trees.BehaviourTree(root)
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
@@ -67,3 +55,5 @@ async def push_message(context: ContextTypes.DEFAULT_TYPE) -> None:
     for user_session in idle_users:
         tree = create_behavior_tree(user_session, context.bot)
         tree.tick()
+        tree2 = create_greeting_tree(user_session, context.bot)
+        tree2.tick()

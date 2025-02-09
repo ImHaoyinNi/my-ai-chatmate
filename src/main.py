@@ -1,14 +1,9 @@
-import os
-
-from dotenv import load_dotenv
-
-from src.telegram_bot import TelegramBot
+from src.config import config
+from src.service.telegram_bot import TelegramBot
 
 
 def main():
-    load_dotenv()
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    bot = TelegramBot(token)
+    bot = TelegramBot(config.telegram_bot_token)
     bot.start()
 
 

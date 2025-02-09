@@ -5,13 +5,35 @@
     "image2text_api_url": "https://ai.api.nvidia.com/v1/gr/meta/llama-3.2-90b-vision-instruct/chat/completions",
     "text2image_api_url": "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-xl"
   },
-  "behavior_settings": {
-    "interval": 300,
-    "idle_hour": 2,
-    "idle_minute": 0
-  },
+
   "default_persona": "civen",
   "persona_civen": {
     "speaker": ""
-  }
+  },
+  "user_session_settings": {
+    "max_context_length": 100,
+    "enable_push": true
+  },
+  "max_context_length": 100,
+
+  "cronjob_settings": {
+    "interval": 300
+  },
+
+
+  "greeting_settings": {
+    "greetings_interval_minutes": 10
+  },
+
+  "read_news_settings": {
+    "read_news_interval_hours": 5
+  },
+
+  "is_awake_settings": {
+    "sleep_time_hour_start": 0,
+    "sleep_time_hour_end": 7
+  },
+
+  "idle_minutes": 60
+
 }

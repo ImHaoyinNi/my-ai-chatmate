@@ -67,11 +67,11 @@ class OllamaApi(LLMAPIInterface, VoiceAPIInterface):
         )
         end_time = time.time()
         duration = round(end_time - start_time, 1)
-        print(f"{self.api_name} finished transcribing. Duration: {duration} seconds")
+        logger.info(f"{self.api_name} finished transcribing. Duration: {duration} seconds")
         return result["text"]
 
     def text2audio(self, text, speaker: Speaker=Speaker.WOMAN) -> io.BytesIO:
-        print(f"{self.api_name} text2audio...")
+        logger.info(f"{self.api_name} text2audio...")
         start_time = time.time()
         audio_array = generate_audio(text, history_prompt=speaker.value, silent=True)
 

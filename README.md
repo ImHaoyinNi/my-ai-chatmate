@@ -1,3 +1,5 @@
 # my-ai-chatmate
-### install
-I installed ffmpeg to deal with ogg audio file
+### Connect to aws
+ssh -i ~/.ssh/ai-chatbot.pem ec2-user@18.206.124.131
+### Pull image
+docker pull haoyinni/my-ai-chatmate:20250207

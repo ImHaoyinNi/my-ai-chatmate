@@ -20,8 +20,11 @@ class MessageProcessor:
         return response
 
     @staticmethod
-    def process_image(user_id, image_file):
-        return f"I see: image"
+    def process_image(user_id, image_b64: str):
+        user_session = UserSessionManager.get_session(user_id)
+        description = aiService.describe_image(user_session, image_b64)
+        prompt = "I sent you an image. Here is the description of the image: \n" + description
+        return aiService.generate_reply(user_session, prompt)
 
     @staticmethod
     def process_command(user_id, command) -> str:

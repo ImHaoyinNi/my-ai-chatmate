@@ -9,9 +9,9 @@ class UserSession:
     def __init__(self, user_id: int):
         self.user_id: int = user_id
         self._reply_with_voice: bool = False
-        self._enable_push: bool = True
+        self._enable_push: bool = config.user_session_settings["enable_push"]
         self._last_active: float = -1
-        self._max_context: int = 20
+        self._max_context_length: int = config.user_session_settings["max_context_length"]
 
         self.system_message: dict = new_message(Role.SYSTEM, "")
         self.context: list[dict] = [self.system_message]
@@ -21,12 +21,12 @@ class UserSession:
     def add_user_context(self, user_input: str):
         self.context.append(new_message(Role.USER, user_input))
         self._last_active = time.time()
-        if len(self.context) > self._max_context:
+        if len(self.context) > self._max_context_length:
             self.context.pop(1)
 
     def add_bot_context(self, bot_input):
         self.context.append(new_message(Role.ASSISTANT, bot_input))
-        if len(self.context) > self._max_context:
+        if len(self.context) > self._max_context_length:
             self.context.pop(1)
 
     def set_persona(self, persona: str):
@@ -48,6 +48,10 @@ class UserSession:
             return True
         else:
             return False
+
+    def to_string(self) -> str:
+        attributes = {k: v for k, v in self.__dict__.items() if k != "context"}
+        return ", ".join(f"{key}: {value}" for key, value in attributes.items())
 
     @property
     def reply_with_voice(self):
