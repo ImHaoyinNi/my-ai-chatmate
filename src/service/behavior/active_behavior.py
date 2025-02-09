@@ -45,12 +45,13 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.FAILURE
         try:
             message = self.generate_message()
-            if message.message_type == MessageType.NONE or message.message_type == MessageType.BAD_MESSAGE:
+            if message.message_type in (MessageType.NONE, MessageType.BAD_MESSAGE):
                 return py_trees.common.Status.FAILURE
-            loop = asyncio.get_event_loop()
-            self._running_task = loop.create_task(self.send_content(message))
-            self._running_task.add_done_callback(self._on_message_complete)
             logger.info(f"===={self.name} was triggered====")
+            loop = asyncio.get_event_loop()
+            if not self._running_task or self._running_task.done():  # Start only if no task is running
+                self._running_task = loop.create_task(self.send_content(message))
+                self._running_task.add_done_callback(self._on_message_complete)
             return py_trees.common.Status.RUNNING
         except Exception as e:
             self.logger.error(f"Error sending message: {str(e)}")
@@ -58,11 +59,12 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
 
     def _on_message_complete(self, future):
         try:
-            future.result()
-            return py_trees.common.Status.SUCCESS
+            future.result()  # Retrieve task result (raises if failed)
+            self.logger.info(f"Message sending completed successfully.")
+            self.status = py_trees.common.Status.SUCCESS  # Mark success
         except Exception as e:
             self.logger.error(f"Failed to send message: {str(e)}")
-            return py_trees.common.Status.FAILURE
+            self.status = py_trees.common.Status.FAILURE
 
 class StartConversation(ActiveBehavior):
     def __init__(self, user_session: UserSession, bot):

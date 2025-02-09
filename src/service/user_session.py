@@ -1,4 +1,7 @@
 import time
+from datetime import datetime
+
+import pytz
 
 from src.constants import new_message, Role
 from src.config import config
@@ -17,6 +20,17 @@ class UserSession:
         self.context: list[dict] = [self.system_message]
         self.persona = config.default_persona
         self.set_persona(self.persona)
+
+    def to_string(self) -> str:
+        houston_tz = pytz.timezone('America/Chicago')
+
+        attributes = {k: v for k, v in self.__dict__.items() if k != "context"}
+
+        if "_last_active" in attributes and attributes["_last_active"] > 0:
+            attributes["_last_active"] = datetime.fromtimestamp(attributes["_last_active"], houston_tz).strftime(
+                '%Y-%m-%d %H:%M:%S %Z')
+
+        return "\n".join(f"{key}: {value}" for key, value in attributes.items())
 
     def add_user_context(self, user_input: str):
         self.context.append(new_message(Role.USER, user_input))
@@ -48,10 +62,6 @@ class UserSession:
             return True
         else:
             return False
-
-    def to_string(self) -> str:
-        attributes = {k: v for k, v in self.__dict__.items() if k != "context"}
-        return ", ".join(f"{key}: {value}" for key, value in attributes.items())
 
     @property
     def reply_with_voice(self):

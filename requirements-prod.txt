@@ -1,7 +1,5 @@
 APScheduler==3.11.0
 boto3==1.36.9
-grpcio==1.67.1
-grpcio_tools==1.67.1
 langdetect==1.0.9
 numpy==2.2.2
 openai==1.61.1

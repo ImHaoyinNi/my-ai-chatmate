@@ -29,7 +29,8 @@ class RandomSelector(py_trees.behaviour.Behaviour):
             return self.selected_behavior.status
         return py_trees.common.Status.FAILURE
 
-def create_behavior_tree(user_session: UserSession, bot):
+
+def create_active_behavior_tree(user_session: UserSession, bot):
     root = py_trees.composites.Sequence("Push Notification Decision", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
     is_awake_time = IsAwakeTime(user_session)
@@ -41,6 +42,7 @@ def create_behavior_tree(user_session: UserSession, bot):
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
 
+
 def create_greeting_tree(user_session: UserSession, bot) -> BehaviourTree:
     root = py_trees.composites.Sequence("Say Greetings Behavior Tree", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
@@ -50,10 +52,24 @@ def create_greeting_tree(user_session: UserSession, bot) -> BehaviourTree:
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
 
+
+class BehaviorTreeManager:
+    def __init__(self):
+        self.trees: dict[int, list[BehaviourTree]] = {}
+
+    def update_all(self, context: ContextTypes.DEFAULT_TYPE):
+        users = UserSessionManager.get_all_sessions()
+        for user in users:
+            if user.user_id not in self.trees:
+                active_tree = create_active_behavior_tree(user, context.bot)
+                greeting_tree = create_greeting_tree(user, context.bot)
+                self.trees[user.user_id] = [active_tree, greeting_tree, greeting_tree]
+                logger.info(f"Created behavior trees for user {user.user_id}")
+            trees = self.trees[user.user_id]
+            for tree in trees:
+                tree.tick()
+
+behavior_tree_manager = BehaviorTreeManager()
+
 async def push_message(context: ContextTypes.DEFAULT_TYPE) -> None:
-    idle_users = UserSessionManager.get_all_sessions()
-    for user_session in idle_users:
-        tree = create_behavior_tree(user_session, context.bot)
-        tree.tick()
-        tree2 = create_greeting_tree(user_session, context.bot)
-        tree2.tick()
+    behavior_tree_manager.update_all(context)
