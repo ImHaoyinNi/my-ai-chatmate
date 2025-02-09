@@ -80,7 +80,10 @@ class TelegramBot:
 
     @staticmethod
     async def set_job(update: Update, context: CallbackContext) -> None:
-        context.job_queue.run_repeating(push_message, interval=config.cronjob_settings['interval'], first=0)
+        if config.env == 'production':
+            context.job_queue.run_repeating(push_message, interval=config.cronjob_settings['interval'], first=0)
+        else:
+            context.job_queue.run_repeating(push_message, interval=10, first=0)
 
     def register_handlers(self):
         self.app.add_handler(CommandHandler("start", TelegramBot.set_job))
