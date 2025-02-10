@@ -55,18 +55,22 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
         case _:
             return "unknown command"
 
-def format_context(context: list[object]) -> str:
-    items = [str(item) for item in context]
+def format_context(context: list[dict]) -> str:
+    items = [item for item in context]
     if not items:
         formatted_context = ""
     else:
-        result = [items[0] + "\n"]
-        remaining = items[1:]
-        for i in range(0, len(remaining), 2):
-            chunk = remaining[i:i + 2]
-            result.append('\n'.join(chunk) + "\n")
+        result = []
+        for i in range(0, len(items)):
+            chunk = items[i]
+            if len(chunk["content"]) >= 50:
+                chunk = chunk["role"] + ":..." + chunk["content"][-50:]
+            else:
+                chunk = chunk["role"] + ":" + chunk["content"]
+            result.append(chunk + "\n")
 
         formatted_context = ''.join(result).rstrip()
+    print(formatted_context)
     return formatted_context
 
 def help_doc():

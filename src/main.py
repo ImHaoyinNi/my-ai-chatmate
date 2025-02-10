@@ -1,5 +1,5 @@
-from src.config import config
 from src.service.telegram_bot import TelegramBot
+from src.utils.config import config
 
 
 def main():

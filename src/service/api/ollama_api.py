@@ -8,10 +8,10 @@ from bark import generate_audio
 import soundfile as sf
 from pydub import AudioSegment
 
-from src.service.api.interface.llm_api_interface import LLMAPIInterface
-from src.service.api.interface.voice_api_interface import VoiceAPIInterface
-from src.constants import Speaker
-from src.service.logger import logger
+from src.service.api.interface.sync.llm_api_interface import LLMAPIInterface
+from src.service.api.interface.sync.voice_api_interface import VoiceAPIInterface
+from src.utils.utils import Speaker
+from src.utils.utils import logger
 
 
 class OllamaApi(LLMAPIInterface, VoiceAPIInterface):

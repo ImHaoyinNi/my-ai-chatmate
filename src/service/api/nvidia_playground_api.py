@@ -4,13 +4,13 @@ import os
 import requests
 from openai import OpenAI
 
-from src.service.api.interface.image2text_api_interface import Image2TextAPIInterface
-from src.service.api.interface.llm_api_interface import LLMAPIInterface
+from src.service.api.interface.sync.image2text_api_interface import Image2TextAPIInterface
+from src.service.api.interface.sync.llm_api_interface import LLMAPIInterface
 from dotenv import load_dotenv
 
-from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterface
-from src.config import config
-from src.utils import compress_base64_image, save_base64_as_png
+from src.service.api.interface.sync.text2image_api_interface import Text2ImageAPIInterface
+from src.utils.config import config
+from src.utils.utils import compress_base64_image, save_base64_as_png
 
 
 class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPIInterface):

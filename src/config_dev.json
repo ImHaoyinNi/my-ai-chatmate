@@ -17,23 +17,20 @@
   "max_context_length": 100,
 
   "cronjob_settings": {
-    "interval": 300
+    "interval": 10
   },
 
-
   "greeting_settings": {
-    "greeting_interval_minutes": 5
+    "greeting_interval_minutes": 0
   },
 
   "read_news_settings": {
-    "read_news_interval_hours": 5
+    "read_news_interval_hours": 0
   },
 
   "is_awake_settings": {
     "sleep_time_hour_start": 0,
     "sleep_time_hour_end": 7
-  },
-
-  "idle_minutes": 60
+  }
 
 }

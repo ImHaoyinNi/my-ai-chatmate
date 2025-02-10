@@ -4,11 +4,12 @@ from py_trees.trees import BehaviourTree
 
 from src.service.behavior.active_behavior import StartConversation, ReadNews, Greetings
 from src.service.behavior.condition_node import IsPushEnabled, IsAwakeTime
-from src.service.logger import logger
 
 import py_trees
 from src.service.user_session import UserSessionManager, UserSession
 from telegram.ext import ContextTypes
+
+from src.utils.logger import logger
 
 
 class RandomSelector(py_trees.behaviour.Behaviour):
@@ -42,7 +43,6 @@ def create_active_behavior_tree(user_session: UserSession, bot):
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
 
-
 def create_greeting_tree(user_session: UserSession, bot) -> BehaviourTree:
     root = py_trees.composites.Sequence("Say Greetings Behavior Tree", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
@@ -51,7 +51,6 @@ def create_greeting_tree(user_session: UserSession, bot) -> BehaviourTree:
     behavior_tree = py_trees.trees.BehaviourTree(root)
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
-
 
 class BehaviorTreeManager:
     def __init__(self):
@@ -63,7 +62,7 @@ class BehaviorTreeManager:
             if user.user_id not in self.trees:
                 active_tree = create_active_behavior_tree(user, context.bot)
                 greeting_tree = create_greeting_tree(user, context.bot)
-                self.trees[user.user_id] = [active_tree, greeting_tree, greeting_tree]
+                self.trees[user.user_id] = [active_tree, greeting_tree]
                 logger.info(f"Created behavior trees for user {user.user_id}")
             trees = self.trees[user.user_id]
             for tree in trees:

@@ -1,19 +1,17 @@
 import asyncio
-import datetime
-import os
 import random
 
 import py_trees
-import pytz
 import requests
-from dotenv import load_dotenv
 
-from src.config import config
-from src.service.ai_service import aiService
-from src.service.logger import logger
+
+from src.service.ai_service.ai_service import aiService
+from src.service.ai_service.ai_service_async import ai_service_async
 from src.service.message_processor.Message import Message, MessageType
 from src.service.user_session import UserSession
-from src.utils import get_current_time
+from src.utils.config import config
+from src.utils.logger import logger
+from src.utils.utils import get_current_time
 
 
 class ActiveBehavior(py_trees.behaviour.Behaviour):
@@ -23,11 +21,12 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
         self.bot = bot
         self.logger = py_trees.logging.Logger(name=self.name)
         self._running_task = None
+        self._message_generation_task = None
 
     def to_continue(self) -> bool:
         raise NotImplementedError
 
-    def generate_message(self) -> Message:
+    async def generate_message(self) -> Message:
         raise NotImplementedError
 
     async def send_content(self, reply: Message):
@@ -39,32 +38,55 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
             case _:
                 await self.bot.send_message(chat_id=self.user_session.user_id, text="Bad reply")
 
+    def _on_message_complete(self, future):
+        try:
+            future.result()  # This will raise any exceptions that occurred
+            logger.info(f"{self.name} message sent successfully")
+        except Exception as e:
+            self.logger.error(f"Error in message task: {str(e)}")
+
     def update(self):
         logger.info(f"Behavior update: {self.name}")
         if not self.to_continue():
             return py_trees.common.Status.FAILURE
+
         try:
-            message = self.generate_message()
+            loop = asyncio.get_event_loop()
+            if not self._message_generation_task:
+                self._message_generation_task = loop.create_task(self.generate_message())
+                return py_trees.common.Status.RUNNING
+            if not self._message_generation_task.done():
+                return py_trees.common.Status.RUNNING
+
+            try:
+                message = self._message_generation_task.result()
+            except Exception as e:
+                self.logger.error(f"Error generating message: {str(e)}")
+                self._message_generation_task = None
+                return py_trees.common.Status.FAILURE
+            self._message_generation_task = None
+
             if message.message_type in (MessageType.NONE, MessageType.BAD_MESSAGE):
                 return py_trees.common.Status.FAILURE
+
             logger.info(f"===={self.name} was triggered====")
-            loop = asyncio.get_event_loop()
-            if not self._running_task or self._running_task.done():  # Start only if no task is running
+
+            if not self._running_task or self._running_task.done():
                 self._running_task = loop.create_task(self.send_content(message))
                 self._running_task.add_done_callback(self._on_message_complete)
+
             return py_trees.common.Status.RUNNING
+
         except Exception as e:
-            self.logger.error(f"Error sending message: {str(e)}")
+            self.logger.error(f"Error in update: {str(e)}")
             return py_trees.common.Status.FAILURE
 
-    def _on_message_complete(self, future):
-        try:
-            future.result()  # Retrieve task result (raises if failed)
-            self.logger.info(f"Message sending completed successfully.")
-            self.status = py_trees.common.Status.SUCCESS  # Mark success
-        except Exception as e:
-            self.logger.error(f"Failed to send message: {str(e)}")
-            self.status = py_trees.common.Status.FAILURE
+    def terminate(self, new_status):
+        if self._message_generation_task and not self._message_generation_task.done():
+            self._message_generation_task.cancel()
+        if self._running_task and not self._running_task.done():
+            self._running_task.cancel()
+        super().terminate(new_status)
 
 class StartConversation(ActiveBehavior):
     def __init__(self, user_session: UserSession, bot):
@@ -80,8 +102,8 @@ class StartConversation(ActiveBehavior):
     def to_continue(self) -> bool:
         return self.user_session.is_idle(6, 0)
 
-    def generate_message(self) -> Message:
-        message = aiService.generate_reply(self.user_session, self.prompt)
+    async def generate_message(self) -> Message:
+        message = await ai_service_async.generate_reply(self.user_session, self.prompt)
         return message
 
 class ReadNews(ActiveBehavior):
@@ -100,9 +122,9 @@ class ReadNews(ActiveBehavior):
     def to_continue(self) -> bool:
         return self.user_session.is_idle(self._read_news_interval_hours, 0)
 
-    def generate_message(self) -> Message:
+    async def generate_message(self) -> Message:
         prompt = self.prompt_1 + self._pull_news() + self.prompt_2
-        message: Message = aiService.generate_reply(self.user_session, prompt)
+        message: Message = await ai_service_async.generate_reply(self.user_session, prompt)
         return message
 
     def _pull_news(self) -> str:
@@ -135,16 +157,19 @@ class Greetings(ActiveBehavior):
         self.good_sleep_minute = random.randint(0, 59)
 
     def to_continue(self) -> bool:
-        return self.user_session.is_idle(0, 10)
+        return self.user_session.is_idle(0, config.greeting_settings["greeting_interval_minutes"])
 
-    def generate_message(self) -> Message:
+    async def generate_message(self) -> Message:
         hour, minute = get_current_time()
+        # if True:
         if hour == 8 and minute == self.good_morning_minute:
             self.good_morning_minute = random.randint(0, 15)
-            return aiService.generate_reply(self.user_session, self.good_morning_prompt)
+            res = await ai_service_async.generate_reply(self.user_session, self.good_morning_prompt)
+            return res
         if hour == self.good_sleep_hour and minute == self.good_sleep_minute:
             self.good_sleep_minute = random.randint(0, 59)
-            return aiService.generate_reply(self.user_session, self.good_sleep_prompt)
+            res = await ai_service_async.generate_reply(self.user_session, self.good_sleep_prompt)
+            return res
         return Message(MessageType.NONE, "This is a none message")
 
 

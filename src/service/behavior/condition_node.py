@@ -1,12 +1,8 @@
-import datetime
-
 import py_trees
-import pytz
-
-from src.config import config
-from src.service.logger import logger
 from src.service.user_session import UserSession
-from src.utils import get_current_time
+from src.utils.config import config
+from src.utils.logger import logger
+from src.utils.utils import get_current_time
 
 
 class IsUserIdle(py_trees.behaviour.Behaviour):

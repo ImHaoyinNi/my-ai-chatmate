@@ -1,12 +1,10 @@
 import io
-import os
 import subprocess
 import boto3
-from dotenv import load_dotenv
 
-from src.service.api.interface.tts_api_interface import TTSAPIInterface
-from src.config import config
-from src.utils import english_or_chinese
+from src.service.api.interface.sync.tts_api_interface import TTSAPIInterface
+from src.utils.config import config
+from src.utils.utils import english_or_chinese
 
 
 class AwsApi(TTSAPIInterface):
@@ -47,12 +45,12 @@ class AwsApi(TTSAPIInterface):
         else:
             return io.BytesIO()
 
-load_dotenv()
-access_key = os.getenv("AWS_ACCESS_KEY")
-secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-aws_api = AwsApi(access_key, secret_access_key)
+
+aws_api = AwsApi(config.aws_access_key_id, config.aws_secret_access_key)
 
 if __name__ == "__main__":
-    text = "okay SO yesterday I totally blanked on my BFF's coffee order?? 😳 Like we've been to Starbucks 100x but my brain just noped out. You ever have those moments where you forget basic human things lol?"
+    text = """okay SO yesterday I totally blanked on my BFF's coffee order?? "
+            "😳 Like we've been to Starbucks 100x but my brain just noped out. "
+            "You ever have those moments where you forget basic human things lol?"""
     aws_api.text_to_speech(text, "Ruth")
 

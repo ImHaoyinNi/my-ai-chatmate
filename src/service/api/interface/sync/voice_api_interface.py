@@ -1,7 +1,7 @@
 import io
 from abc import ABC, abstractmethod
 
-from src.constants import Speaker
+from src.utils.utils import Speaker
 
 
 class VoiceAPIInterface(ABC):

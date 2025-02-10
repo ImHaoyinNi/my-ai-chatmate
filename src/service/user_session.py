@@ -2,10 +2,9 @@ import time
 from datetime import datetime
 
 import pytz
-
-from src.constants import new_message, Role
-from src.config import config
 from src.service.persona import get_persona_prompt
+from src.utils.config import config
+from src.utils.constants import new_message, Role
 
 
 class UserSession:

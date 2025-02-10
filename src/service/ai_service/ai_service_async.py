@@ -1,30 +1,31 @@
+import asyncio
 import io
 import time
-
-from src.constants import new_message, Role
 from src.service.api.aws_api import aws_api
-from src.service.api.interface.image2text_api_interface import Image2TextAPIInterface
-from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterface
-from src.service.api.interface.tts_api_interface import TTSAPIInterface
-from src.service.api.nvidia_playground_api import nvdia_playground_api
-from src.service.api.interface.llm_api_interface import LLMAPIInterface
-from src.service.logger import logger
-from src.service.message_processor.Message import Message, MessageType
+from src.service.api.interface.async_interface.image2text_api_interface_async import Image2TextAPIInterfaceAsync
+from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
+from src.service.api.interface.sync.tts_api_interface import TTSAPIInterface
+from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
+from src.service.message_processor.Message import MessageType, Message
 from src.service.user_session import UserSession
-from src.utils import remove_think_tag
+from src.utils.constants import new_message, Role
+from src.utils.logger import logger
+from src.utils.utils import remove_think_tag
 
 
-class AIService:
+class AiServiceAsync:
     def __init__(self):
-        self.llm_api: LLMAPIInterface = nvdia_playground_api
+        self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
         self.tts_api: TTSAPIInterface = aws_api
-        self.image2text_api: Image2TextAPIInterface = nvdia_playground_api
+        self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
 
-    def generate_reply(self, user_session: UserSession, prompt: str, message_type: MessageType=MessageType.ANY) -> Message:
+    async def generate_reply(self, user_session: UserSession, prompt: str,
+                             message_type: MessageType = MessageType.ANY) -> Message:
         user_session.add_user_context(prompt)
-        ai_reply: str = self.generate_text_response(user_session)
+        ai_reply: str = await self.generate_text_response(user_session)
         ai_reply = remove_think_tag(ai_reply)
         user_session.add_bot_context(ai_reply)
+
         if message_type == MessageType.ANY:
             if user_session.reply_with_voice:
                 voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
@@ -42,32 +43,38 @@ class AIService:
         else:
             return Message(MessageType.TEXT, ai_reply)
 
-    def generate_text_response(self, user_session: UserSession) -> str:
+    async def generate_text_response(self, user_session: UserSession) -> str:
         start_time = time.time()
         logger.info(f"{self.llm_api.api_name} generating text response...")
-        res = self.llm_api.generate_text_response(user_session.context)
+
+        res = await self.llm_api.generate_text_response(user_session.context)
+
         end_time = time.time()
         duration = round(end_time - start_time, 1)
         logger.info(f"{self.llm_api.api_name} takes {duration} seconds to generate text")
         return res
 
-    def text2voice(self, user_session: UserSession, text: str) -> io.BytesIO:
+    async def text2voice(self, user_session: UserSession, text: str) -> io.BytesIO:
+        # TODO: Make it async
         audio_file = self.tts_api.text_to_speech(text, voice_id="Ruth")
         return audio_file
 
-    def transcribe(self, voice_buffer: io.BytesIO):
-        return self.tts_api.transcribe(voice_buffer)
+    async def transcribe(self, voice_buffer: io.BytesIO):
+        # TODO: Implement transcribe
+        return await self.tts_api.transcribe(voice_buffer)
 
-    def describe_image(self, user_session, image_b64: str):
+    async def describe_image(self, user_session, image_b64: str):
         logger.info(f"{self.llm_api.api_name} describing image...")
         start_time = time.time()
-        description = self.image2text_api.describe_image(user_session, image_b64)
+
+        description = await self.image2text_api.describe_image(user_session, image_b64)
+
         end_time = time.time()
         duration = round(end_time - start_time, 1)
         logger.info(f"{self.llm_api.api_name} takes {duration} seconds to describe image")
         return description
 
-    def chat2sd_prompt(self, user_session: UserSession) -> str:
+    async def chat2sd_prompt(self, user_session: UserSession) -> str:
         context: list[dict] = user_session.context
         llm_query = f"""
         Generate a detailed Stable Diffusion image prompt based on this conversation. Include:
@@ -82,21 +89,19 @@ class AIService:
 
         Prompt:
         """
-        res = self.llm_api.generate_text_response([new_message(Role.USER, llm_query)])
+        res = await self.llm_api.generate_text_response([new_message(Role.USER, llm_query)])
         res = remove_think_tag(res)
         return res
 
-aiService = AIService()
+ai_service_async = AiServiceAsync()
+async def main():
+    session = UserSession(123)
+    message1 = await ai_service_async.generate_reply(session, "What is your name")
+    message2 = await ai_service_async.generate_reply(session, "What is your age")
+    message3 = await ai_service_async.text2voice(session, "I love you!")
+    print(message1)
+    print(message2)
+    print(message3)
 
-if __name__ == "__main__":
-    user_session = UserSession(123)
-    context = [{"role": "system", "content": "You are a sexy 21 year old girl, full of energy"},
-               {"role": "user", "content": "What are you doing?"},
-               {"role": "assistant", "content": "Drinking a coffee"}]
-    user_session.context = context
-    prompt = aiService.chat2sd_prompt(user_session)
-    print(aiService.chat2sd_prompt(user_session))
-    # print(user_session.context)
-
-
-
+if __name__ == '__main__':
+    asyncio.run(main())
