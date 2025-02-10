@@ -1,5 +1,7 @@
 # my-ai-chatmate
-### pipreqs . --force
+### Export packages
+cd /d D:\Development\Projects\my-ai-chatmate
+pipreqs . --force
 Delete bark, whisper
 ### Build Image
 docker build -t haoyinni/my-ai-chatmate:20250208-1 . 
