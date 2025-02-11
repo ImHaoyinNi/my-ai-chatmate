@@ -4,8 +4,10 @@ import time
 from src.service.api.aws_api import aws_api
 from src.service.api.interface.async_interface.image2text_api_interface_async import Image2TextAPIInterfaceAsync
 from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
+from src.service.api.interface.async_interface.speech2text_api_interface_async import Speech2TextAPIInterfaceAsync
 from src.service.api.interface.sync.tts_api_interface import TTSAPIInterface
 from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
+from src.service.api.openai_api import openai_api
 from src.service.message_processor.Message import MessageType, Message
 from src.service.user_session import UserSession
 from src.utils.constants import new_message, Role
@@ -18,6 +20,7 @@ class AiServiceAsync:
         self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
         self.tts_api: TTSAPIInterface = aws_api
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
+        self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
 
     async def generate_reply(self, user_session: UserSession, prompt: str,
                              message_type: MessageType = MessageType.ANY) -> Message:
@@ -61,7 +64,7 @@ class AiServiceAsync:
 
     async def transcribe(self, voice_buffer: io.BytesIO):
         # TODO: Implement transcribe
-        return await self.tts_api.transcribe(voice_buffer)
+        return await self.speech2text_api.speech_to_text(voice_buffer)
 
     async def describe_image(self, user_session, image_b64: str):
         logger.info(f"{self.llm_api.api_name} describing image...")

@@ -17,9 +17,8 @@
   "max_context_length": 100,
 
   "cronjob_settings": {
-    "interval": 300
+    "interval": 120
   },
-
 
   "greeting_settings": {
     "greeting_interval_minutes": 5

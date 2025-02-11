@@ -25,6 +25,7 @@ class Config:
         self.aws_secret_access_key: str = ""
         self.env: str = ""
         self.gnews_api_key: str = ""
+        self.openai_api_key: str = ""
 
     def load_config(self):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,12 +46,17 @@ class Config:
 
     def load_env(self):
         load_dotenv()
+        self.env = os.getenv("ENV")
         self.nvidia_api_key = os.getenv("NVIDIA_API_KEY")
-        self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.gnews_api_key=os.getenv("GNEWS_API_KEY")
-        self.env = os.getenv("ENV")
+        self.openai_api_key=os.getenv("OPENAI_API_KEY")
+        if self.env == "production":
+            self.telegram_bot_token = os.getenv("PROD_BOT_TOKEN")
+        else:
+            self.telegram_bot_token = os.getenv("DEV_BOT_TOKEN")
+
 
 config = Config()
 config.load_env()

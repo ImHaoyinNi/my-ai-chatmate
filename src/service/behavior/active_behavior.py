@@ -1,5 +1,6 @@
 import asyncio
 import random
+import re
 
 import py_trees
 import requests
@@ -10,6 +11,7 @@ from src.service.ai_service.ai_service_async import ai_service_async
 from src.service.message_processor.Message import Message, MessageType
 from src.service.user_session import UserSession
 from src.utils.config import config
+from src.utils.constants import Role
 from src.utils.logger import logger
 from src.utils.utils import get_current_time
 
@@ -106,6 +108,45 @@ class StartConversation(ActiveBehavior):
         message = await ai_service_async.generate_reply(self.user_session, self.prompt)
         return message
 
+class AskingForReply(ActiveBehavior):
+    def __init__(self, user_session: UserSession, bot):
+        super(AskingForReply, self).__init__(user_session, bot, name="Asking For Reply")
+        self.waiting_minutes: int = random.randint(3, 5)
+        self.max_waiting_minutes: int = 15
+        self.prompt = (
+            f"You have waited for my reply for {self.waiting_minutes} minutes. "
+            "But I still didn't reply your message for a while. "
+            "Based on your persona, feel free to take the lead and ask for my reply."
+        )
+
+    def is_last_sentence_question(self, text: str):
+        # Split sentences considering punctuation like . ! ? (Handles potential trailing spaces or emojis)
+        sentences = re.split(r'(?<=[.?!])\s+', text.strip())
+        # Filter out empty sentences (possible due to trailing spaces or emojis)
+        sentences = [s for s in sentences if s]
+        # Check if the last sentence ends with a question mark
+        if sentences and sentences[-1].strip().endswith('?'):
+            return True
+        else:
+            return False
+
+    def to_continue(self) -> bool:
+        last_message = self.user_session.context[-1]
+        if last_message["role"] == Role.USER.value:
+            return False
+        if not self.is_last_sentence_question(last_message["content"]):
+            return False
+        is_idle = self.user_session.is_idle(0, self.waiting_minutes)
+        if is_idle:
+            self.waiting_minutes = max(self.max_waiting_minutes, self.waiting_minutes + random.randint(3, 5))
+        else:
+            self.waiting_minutes = random.randint(3, 5)
+        return is_idle
+
+    async def generate_message(self) -> Message:
+        message = await ai_service_async.generate_reply(self.user_session, self.prompt)
+        return message
+
 class ReadNews(ActiveBehavior):
     def __init__(self, user_session: UserSession, bot):
         super(ReadNews, self).__init__(user_session, bot, name="Read News")
@@ -148,7 +189,7 @@ class Greetings(ActiveBehavior):
             "It's morning time. Say good morning to me."
         )
         self.good_morning_hour = 8
-        self.good_morning_minute = random.randint(0, 15)
+        self.good_morning_minute = random.randint(0, 20)
 
         self.good_sleep_prompt = (
             "It's sleep time. You should go to sleep. Say good night to me."
@@ -162,11 +203,11 @@ class Greetings(ActiveBehavior):
     async def generate_message(self) -> Message:
         hour, minute = get_current_time()
         # if True:
-        if hour == 8 and minute == self.good_morning_minute:
-            self.good_morning_minute = random.randint(0, 15)
+        if hour == 8 and abs(minute-self.good_morning_minute) <= 2:
+            self.good_morning_minute = random.randint(0, 20)
             res = await ai_service_async.generate_reply(self.user_session, self.good_morning_prompt)
             return res
-        if hour == self.good_sleep_hour and minute == self.good_sleep_minute:
+        if hour == self.good_sleep_hour and abs(minute-self.good_sleep_minute) < 2:
             self.good_sleep_minute = random.randint(0, 59)
             res = await ai_service_async.generate_reply(self.user_session, self.good_sleep_prompt)
             return res

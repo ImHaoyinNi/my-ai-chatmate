@@ -21,11 +21,11 @@
   },
 
   "greeting_settings": {
-    "greeting_interval_minutes": 0
+    "greeting_interval_minutes": 5
   },
 
   "read_news_settings": {
-    "read_news_interval_hours": 0
+    "read_news_interval_hours": 1
   },
 
   "is_awake_settings": {

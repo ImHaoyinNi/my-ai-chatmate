@@ -62,6 +62,7 @@ class TelegramBot:
         voice_file: File = await voice.get_file()
         voice_bytes = await voice_file.download_as_bytearray()
         voice_buffer = io.BytesIO(voice_bytes)
+        voice_buffer.name = "voice.ogg"
         reply = await MessageProcessorAsync.process_voice(user_id, voice_buffer)
         await TelegramBot.send_message(context.bot, user_id, reply)
 
