@@ -8,9 +8,12 @@ from src.utils.logger import logger
 
 class Config:
     def __init__(self):
+        # API
         self.nvidia_api_settings: dict = {}
         self.default_persona: str = ""
         self.user_session_settings: dict = {}
+        self.ai_horde_api_settings: dict = {}
+        self.stability_ai_api_settings: dict = {}
 
         # Behavior
         self.cronjob_settings: dict = {}
@@ -26,6 +29,8 @@ class Config:
         self.env: str = ""
         self.gnews_api_key: str = ""
         self.openai_api_key: str = ""
+        self.ai_horde_api_key: str = ""
+        self.stability_ai_api_key: str = ""
 
     def load_config(self):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,9 +40,12 @@ class Config:
         logger.info(f"Loading config from {config_path}")
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
+            # API
             self.nvidia_api_settings = config['nvidia_api_settings']
+            self.ai_horde_api_settings = config['ai_horde_api_settings']
             self.default_persona = config['default_persona']
             self.user_session_settings = config['user_session_settings']
+            self.stability_ai_api_settings = config['stability_ai_api_settings']
 
             self.cronjob_settings = config['cronjob_settings']
             self.is_awake_settings = config['is_awake_settings']
@@ -52,6 +60,9 @@ class Config:
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.gnews_api_key=os.getenv("GNEWS_API_KEY")
         self.openai_api_key=os.getenv("OPENAI_API_KEY")
+        self.ai_horde_api_key=os.getenv("AIHORDE_API_KEY")
+        self.stability_ai_api_key=os.getenv("STABILITY_AI_API_KEY")
+
         if self.env == "production":
             self.telegram_bot_token = os.getenv("PROD_BOT_TOKEN")
         else:

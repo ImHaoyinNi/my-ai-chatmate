@@ -1,18 +1,22 @@
 import asyncio
+import base64
 import io
 import time
+
 from src.service.api.aws_api import aws_api
 from src.service.api.interface.async_interface.image2text_api_interface_async import Image2TextAPIInterfaceAsync
 from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
 from src.service.api.interface.async_interface.speech2text_api_interface_async import Speech2TextAPIInterfaceAsync
+from src.service.api.interface.async_interface.text2image_api_interface_async import Text2ImageAPIInterfaceAsync
 from src.service.api.interface.sync.tts_api_interface import TTSAPIInterface
 from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
 from src.service.api.openai_api import openai_api
-from src.service.message_processor.Message import MessageType, Message
+from src.service.api.stability_ai_api import stability_ai_api
+from src.service.message_processor.Message import MessageType, Message, message_queue
 from src.service.user_session import UserSession
 from src.utils.constants import new_message, Role
 from src.utils.logger import logger
-from src.utils.utils import remove_think_tag
+from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_prompt
 
 
 class AiServiceAsync:
@@ -21,6 +25,7 @@ class AiServiceAsync:
         self.tts_api: TTSAPIInterface = aws_api
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
         self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
+        self.text2image_api: Text2ImageAPIInterfaceAsync = stability_ai_api
 
     async def generate_reply(self, user_session: UserSession, prompt: str,
                              message_type: MessageType = MessageType.ANY) -> Message:
@@ -28,33 +33,59 @@ class AiServiceAsync:
         ai_reply: str = await self.generate_text_response(user_session)
         ai_reply = remove_think_tag(ai_reply)
         user_session.add_bot_context(ai_reply)
+        image_prompt = get_image_prompt(ai_reply)
+        if image_prompt != "":
+            ai_reply = remove_image_prompt(ai_reply)
 
-        if message_type == MessageType.ANY:
-            if user_session.reply_with_voice:
-                voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-                return Message(MessageType.VOICE, voice)
-            else:
-                return Message(MessageType.TEXT, ai_reply)
-        elif message_type == MessageType.TEXT:
-            return Message(MessageType.TEXT, ai_reply)
-        elif message_type == MessageType.VOICE:
-            voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-            return Message(MessageType.VOICE, voice)
-        elif message_type == MessageType.IMAGE:
-            # TODO: Implement image message
-            return Message(MessageType.TEXT, ai_reply)
-        else:
-            return Message(MessageType.TEXT, ai_reply)
+        try:
+            match message_type:
+                case MessageType.ANY:
+                    # Voice
+                    if user_session.reply_with_voice:
+                        voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
+                        message = Message(MessageType.VOICE, voice, prompt)
+                        message_queue.enqueue(user_session.user_id, message)
+                    else:
+                        # Text
+                        message = Message(MessageType.TEXT, ai_reply, prompt)
+                        message_queue.enqueue(user_session.user_id, message)
+                    # Image
+                    if image_prompt != "" and user_session.enable_image:
+                        image_message = await self.generate_image(user_session, image_prompt)
+                        message_queue.enqueue(user_session.user_id, image_message)
+                    return message
+                case MessageType.TEXT:
+                    message = Message(MessageType.TEXT, ai_reply, prompt)
+                    message_queue.enqueue(user_session.user_id, message)
+                    return message
+                case MessageType.VOICE:
+                    voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
+                    message = Message(MessageType.TEXT, voice, prompt)
+                    message_queue.enqueue(user_session.user_id, message)
+                    return message
+                case MessageType.IMAGE:
+                    # Image
+                    if image_prompt != "" and user_session.enable_image:
+                        image_message = await self.generate_image(user_session, image_prompt)
+                        message_queue.enqueue(user_session.user_id, image_message)
+                        return image_message
+                    else: return Message(MessageType.NONE, ai_reply, prompt)
+                case _:
+                    logger.error(f"Unknown message type: {message_type}")
+                    return Message(MessageType.BAD_MESSAGE, ai_reply, prompt)
+        except Exception as e:
+            logger.error(e)
+            return Message(MessageType.NONE, ai_reply, prompt)
 
     async def generate_text_response(self, user_session: UserSession) -> str:
         start_time = time.time()
-        logger.info(f"{self.llm_api.api_name} generating text response...")
+        logger.info(f"====={self.llm_api.api_name} generating text response...")
 
         res = await self.llm_api.generate_text_response(user_session.context)
 
         end_time = time.time()
         duration = round(end_time - start_time, 1)
-        logger.info(f"{self.llm_api.api_name} takes {duration} seconds to generate text")
+        logger.info(f"====={self.llm_api.api_name} takes {duration} seconds to generate text")
         return res
 
     async def text2voice(self, user_session: UserSession, text: str) -> io.BytesIO:
@@ -62,9 +93,10 @@ class AiServiceAsync:
         audio_file = self.tts_api.text_to_speech(text, voice_id="Ruth")
         return audio_file
 
-    async def transcribe(self, voice_buffer: io.BytesIO):
-        # TODO: Implement transcribe
-        return await self.speech2text_api.speech_to_text(voice_buffer)
+    async def transcribe(self, voice_buffer: io.BytesIO) -> str:
+        text = await self.speech2text_api.speech_to_text(voice_buffer)
+        logger.info(f"User said: {text}")
+        return text
 
     async def describe_image(self, user_session, image_b64: str):
         logger.info(f"{self.llm_api.api_name} describing image...")
@@ -95,6 +127,25 @@ class AiServiceAsync:
         res = await self.llm_api.generate_text_response([new_message(Role.USER, llm_query)])
         res = remove_think_tag(res)
         return res
+
+    async def generate_image(self, user_session: UserSession, prompt: str) -> Message:
+        start_time = time.time()
+        logger.info(f"=====Got an image prompt: {prompt}")
+        logger.info(f"====={self.text2image_api.api_name} generating image...")
+        try:
+            image_b64 = await self.text2image_api.generate_image(prompt)
+            image_bytes = base64.b64decode(image_b64)
+            image_io = io.BytesIO(image_bytes)
+
+            end_time = time.time()
+            duration = round(end_time - start_time, 1)
+            logger.info(f"====={self.text2image_api.api_name} takes {duration} seconds to generate image")
+            return Message(MessageType.IMAGE, image_io, prompt)
+        except Exception as e:
+            logger.error(e)
+            return Message(MessageType.BAD_MESSAGE,
+                           f"Your bot tried to send you\n <image_prompt> {prompt} </image_prompt>\n But it got censored by stability ai.",
+                           prompt)
 
 ai_service_async = AiServiceAsync()
 async def main():

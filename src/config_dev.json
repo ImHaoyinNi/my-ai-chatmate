@@ -6,22 +6,32 @@
     "text2image_api_url": "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-xl"
   },
 
+  "ai_horde_api_settings": {
+    "model_name": "A-Zovya RPG Inpainting",
+    "nsfw": true
+  },
+
+  "stability_ai_api_settings": {
+    "version": "v2"
+  },
+
   "default_persona": "civen",
   "persona_civen": {
     "speaker": ""
   },
   "user_session_settings": {
     "max_context_length": 100,
-    "enable_push": true
+    "enable_push": true,
+    "enable_image": true
   },
   "max_context_length": 100,
 
   "cronjob_settings": {
-    "interval": 10
+    "interval": 500
   },
 
   "greeting_settings": {
-    "greeting_interval_minutes": 5
+    "greeting_interval_minutes": 10
   },
 
   "read_news_settings": {

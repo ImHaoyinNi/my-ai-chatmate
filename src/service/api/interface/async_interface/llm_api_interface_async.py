@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 class LLMAPIInterfaceAsync(ABC):
     @property
@@ -8,5 +7,5 @@ class LLMAPIInterfaceAsync(ABC):
         pass
 
     @abstractmethod
-    async def generate_text_response(self, context: List[object]) -> str:
+    async def generate_text_response(self, context: list[dict]) -> str:
         pass

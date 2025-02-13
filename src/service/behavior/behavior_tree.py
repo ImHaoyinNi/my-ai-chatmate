@@ -2,7 +2,9 @@ import random
 
 from py_trees.trees import BehaviourTree
 
-from src.service.behavior.active_behavior import StartConversation, ReadNews, Greetings, AskingForReply
+from src.service.behavior.active_behaviors.active_behavior import StartConversation, AskingForReply
+from src.service.behavior.active_behaviors.greetings import Greetings
+from src.service.behavior.active_behaviors.read_news import ReadNews
 from src.service.behavior.condition_node import IsPushEnabled, IsAwakeTime
 
 import py_trees
@@ -35,9 +37,9 @@ def create_active_behavior_tree(user_session: UserSession, bot):
     root = py_trees.composites.Sequence("Push Notification Decision", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
     is_awake_time = IsAwakeTime(user_session)
-    send_message = StartConversation(user_session, bot)
+    start_conversation = StartConversation(user_session, bot)
     read_news = ReadNews(user_session, bot)
-    random_choice = RandomSelector("Random Choice", [read_news, send_message])
+    random_choice = RandomSelector("Random Choice", [read_news, start_conversation])
     root.add_children([is_push_enabled, is_awake_time, random_choice])
     behavior_tree = py_trees.trees.BehaviourTree(root)
     logger.info(py_trees.display.ascii_tree(root))
@@ -56,7 +58,8 @@ def create_conversation_tree(user_session: UserSession, bot) -> BehaviourTree:
     root = py_trees.composites.Sequence("Conversation Behavior Tree", memory=True)
     is_push_enabled = IsPushEnabled(user_session)
     ask_for_reply = AskingForReply(user_session, bot)
-    root.add_children([is_push_enabled, ask_for_reply])
+    start_conversation = StartConversation(user_session, bot)
+    root.add_children([is_push_enabled, start_conversation])
     behavior_tree = py_trees.trees.BehaviourTree(root)
     logger.info(py_trees.display.ascii_tree(root))
     return behavior_tree
@@ -69,10 +72,10 @@ class BehaviorTreeManager:
         users = UserSessionManager.get_all_sessions()
         for user in users:
             if user.user_id not in self.trees:
-                active_tree = create_active_behavior_tree(user, context.bot)
+                # active_tree = create_active_behavior_tree(user, context.bot)
                 greeting_tree = create_greeting_tree(user, context.bot)
                 conversation_tree = create_conversation_tree(user, context.bot)
-                self.trees[user.user_id] = [active_tree, greeting_tree, conversation_tree]
+                self.trees[user.user_id] = [greeting_tree, conversation_tree]
                 logger.info(f"Created behavior trees for user {user.user_id}")
             trees = self.trees[user.user_id]
             for tree in trees:

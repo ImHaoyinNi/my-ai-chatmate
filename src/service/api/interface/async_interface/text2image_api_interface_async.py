@@ -7,5 +7,5 @@ class Text2ImageAPIInterfaceAsync(ABC):
         pass
 
     @abstractmethod
-    async def generate_image(self, pos: str, neg: str) -> str:
+    async def generate_image(self, prompt) -> str:
         pass

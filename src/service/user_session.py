@@ -12,6 +12,7 @@ class UserSession:
         self.user_id: int = user_id
         self._reply_with_voice: bool = False
         self._enable_push: bool = config.user_session_settings["enable_push"]
+        self._enable_image: bool = config.user_session_settings["enable_image"]
         self._last_active: float = -1
         self._max_context_length: int = config.user_session_settings["max_context_length"]
 
@@ -77,6 +78,14 @@ class UserSession:
     @enable_push.setter
     def enable_push(self, value):
         self._enable_push = value
+
+    @property
+    def enable_image(self):
+        return self._enable_image
+
+    @enable_image.setter
+    def enable_image(self, value):
+        self._enable_image = value
 
     @property
     def last_active(self):

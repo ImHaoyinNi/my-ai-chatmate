@@ -23,6 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application files
 COPY . .
 
+RUN sed -i '/^ENV=/d' .env && echo "\nENV=production" >> .env
+
 # Set the command to run the app as a module
 CMD ["python", "-m", "src.main"]
 

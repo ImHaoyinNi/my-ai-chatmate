@@ -35,7 +35,10 @@ class NvidiaPlaygroundAPIAsync(LLMAPIInterfaceAsync, Image2TextAPIInterfaceAsync
             max_tokens=4096,
             stream=False
         )
-        return completion.choices[0].message.content
+        try:
+            return completion.choices[0].message.content
+        except Exception:
+            return f"Bad response from {self.api_name}"
 
     async def describe_image(self, context: list[dict], image_b64: str) -> str:
         async with httpx.AsyncClient() as client:

@@ -17,6 +17,8 @@ class COMMAND(Enum):
     DISABLE_VOICE = "disable-voice"
     ENABLE_PUSH = "enable-push"
     DISABLE_PUSH = "disable-push"
+    ENABLE_IMAGE = "enable-image"
+    DISABLE_IMAGE = "disable-image"
 
 def run_command(user_id, command: str, arguments: list[str]) -> str:
     user_session = UserSessionManager.get_session(user_id)
@@ -47,6 +49,12 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
             user_session.reply_with_voice = False
             return "voice is disabled. Bot will now reply with text."
         case COMMAND.ENABLE_PUSH.value:
+            user_session.enable_push = True
+            return "push is enabled. Bot will now initiate conversation."
+        case COMMAND.DISABLE_PUSH.value:
+            user_session.enable_push = False
+            return "push is disabled. Bot will not initiate conversation."
+        case COMMAND.ENABLE_IMAGE.value:
             user_session.enable_push = True
             return "push is enabled. Bot will now initiate conversation."
         case COMMAND.DISABLE_PUSH.value:
@@ -88,20 +96,22 @@ def help_doc():
         
     /get-persona
         Display the currently active personality setting
-
     /set-persona
         Available persona: {get_persona_types()}
         Usage: /set-personality chick
 
     /enable-voice
         Enable voice interaction mode
-
     /disable-voice
         Disable voice interaction mode and return to text-only
+    
+    /enable-image
+        Allow bot to send images
+    /disable-image
+        Disallow bot to send images
         
     /enable-push
         Bot may initiate a conversation
-
     /disable-voice
         Bot won't initiate a conversation
     """

@@ -13,7 +13,7 @@ from src.utils.config import config
 from src.utils.utils import compress_base64_image, save_base64_as_png
 
 
-class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPIInterface):
+class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface):
     @property
     def api_name(self):
         return "Nvidia Playground API"
@@ -43,7 +43,7 @@ class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPI
             messages=context,
             temperature=0.6,
             top_p=0.7,
-            max_tokens=4096,
+            max_tokens=100,
             stream=False
         )
         return completion.choices[0].message.content
@@ -74,24 +74,24 @@ class NvidiaPlaygroundAPI(LLMAPIInterface, Image2TextAPIInterface, Text2ImageAPI
         response = requests.post(self._image2text_api_url, headers=headers, json=payload)
         return response.json()["choices"][0]["message"]["content"]
 
-    def generate_image(self, pos: str, neg: str="") -> str:
-        headers = {
-            "Authorization": f"Bearer {self._api_key}",
-            "Accept": "application/json",
-        }
-        payload = {
-            "text_prompts": [{"text": pos,"weight": 1},
-                             {"text": neg,"weight": -1}],
-            "cfg_scale": 5,
-            "sampler": "K_DPM_2_ANCESTRAL",
-            "seed": 0,
-            "steps": 25
-        }
-
-        response = requests.post(self._text2image_api_url, headers=headers, json=payload)
-        response.raise_for_status()
-        response_body = response.json()
-        return response_body["artifacts"][0]["base64"]
+    # def generate_image(self, pos: str, neg: str="") -> str:
+    #     headers = {
+    #         "Authorization": f"Bearer {self._api_key}",
+    #         "Accept": "application/json",
+    #     }
+    #     payload = {
+    #         "text_prompts": [{"text": pos, "weight": 1},
+    #                          {"text": neg, "weight": -1}],
+    #         "cfg_scale": 5,
+    #         "sampler": "K_DPM_2_ANCESTRAL",
+    #         "seed": 0,
+    #         "steps": 25
+    #     }
+    #
+    #     response = requests.post(self._text2image_api_url, headers=headers, json=payload)
+    #     response.raise_for_status()
+    #     response_body = response.json()
+    #     return response_body["artifacts"][0]["base64"]
 
     def generate_image_consistory(self, subject_prompt, scene_prompt1, scene_prompt2, neg_prompt="", style_prompt="A photo of") -> str:
         invoke_url = "https://ai.api.nvidia.com/v1/genai/nvidia/consistory"

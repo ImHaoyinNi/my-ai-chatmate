@@ -1,0 +1,40 @@
+import random
+
+from src.service.ai_service.ai_service_async import ai_service_async
+from src.service.behavior.active_behaviors.active_behavior import ActiveBehavior
+from src.service.message_processor.Message import Message, MessageType
+from src.service.user_session import UserSession
+from src.utils.config import config
+from src.utils.utils import get_current_time
+
+
+class Greetings(ActiveBehavior):
+    def __init__(self, user_session: UserSession, bot):
+        super(Greetings, self).__init__(user_session, bot, name="Greetings")
+        self.good_morning_prompt = (
+            "It's morning time. Say good morning to me."
+        )
+        self.good_morning_hour = 8
+        self.good_morning_minute = random.randint(0, 20)
+
+        self.good_sleep_prompt = (
+            "It's sleep time. You should go to sleep. Say good night to me."
+        )
+        self.good_sleep_hour = 11
+        self.good_sleep_minute = random.randint(0, 59)
+
+    def to_continue(self) -> bool:
+        return self.user_session.is_idle(0, config.greeting_settings["greeting_interval_minutes"])
+
+    async def generate_message(self) -> Message:
+        hour, minute = get_current_time()
+        # if True:
+        if hour == 8 and abs(minute-self.good_morning_minute) <= 2:
+            self.good_morning_minute = random.randint(0, 20)
+            res = await ai_service_async.generate_reply(self.user_session, self.good_morning_prompt)
+            return res
+        if hour == self.good_sleep_hour and abs(minute-self.good_sleep_minute) < 2:
+            self.good_sleep_minute = random.randint(0, 59)
+            res = await ai_service_async.generate_reply(self.user_session, self.good_sleep_prompt)
+            return res
+        return Message(MessageType.NONE, "This is a none message", "")
