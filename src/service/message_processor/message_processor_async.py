@@ -8,6 +8,7 @@ from src.service.user_session import UserSessionManager
 
 
 class MessageProcessorAsync:
+    @staticmethod
     async def process_text(user_id: int, text: str) -> Message:
         user_session = UserSessionManager.get_session(user_id)
         response = await ai_service_async.generate_reply(user_session, text)

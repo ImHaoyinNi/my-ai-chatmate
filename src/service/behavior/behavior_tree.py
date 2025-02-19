@@ -2,9 +2,10 @@ import random
 
 from py_trees.trees import BehaviourTree
 
-from src.service.behavior.active_behaviors.active_behavior import StartConversation, AskingForReply
+from src.service.behavior.active_behaviors.base_active_behavior import AskingForReply
 from src.service.behavior.active_behaviors.greetings import Greetings
 from src.service.behavior.active_behaviors.read_news import ReadNews
+from src.service.behavior.active_behaviors.start_conversation import StartConversation
 from src.service.behavior.condition_node import IsPushEnabled, IsAwakeTime
 
 import py_trees

@@ -12,9 +12,9 @@ from src.utils.logger import logger
 from src.utils.utils import get_current_time, send_message
 
 
-class ActiveBehavior(py_trees.behaviour.Behaviour):
+class BaseActiveBehavior(py_trees.behaviour.Behaviour):
     def __init__(self, user_session: UserSession, bot, name="Base Send Message"):
-        super(ActiveBehavior, self).__init__(name=name)
+        super(BaseActiveBehavior, self).__init__(name=name)
         self.user_session = user_session
         self.bot = bot
         self.logger = py_trees.logging.Logger(name=self.name)
@@ -41,7 +41,7 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
         logger.info(f"Behavior update: {self.name}")
         if not self.to_continue():
             return py_trees.common.Status.FAILURE
-
+        logger.info(f"===={self.name} was triggered====")
         try:
             loop = asyncio.get_event_loop()
             if not self._message_generation_task:
@@ -59,7 +59,6 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
             self._message_generation_task = None
             if message.message_type in (MessageType.NONE, MessageType.BAD_MESSAGE):
                 return py_trees.common.Status.FAILURE
-            logger.info(f"===={self.name} was triggered====")
             return py_trees.common.Status.SUCCESS
 
         except Exception as e:
@@ -73,26 +72,8 @@ class ActiveBehavior(py_trees.behaviour.Behaviour):
             self._running_task.cancel()
         super().terminate(new_status)
 
-class StartConversation(ActiveBehavior):
-    def __init__(self, user_session: UserSession, bot):
-        super(StartConversation, self).__init__(user_session, bot, name="Start Conversation")
-        self.prompt = (
-            "I didn't reply your message for a while. "
-            "Based on your persona, feel free to take the lead and start a conversation with me. "
-            "Ask questions or share thoughts that fit your character's traits, "
-            "background, and style. "
-            "Let's get into a natural flow where your persona can interact with me, and I'll respond in kind."
-        )
-
-    def to_continue(self) -> bool:
-        return self.user_session.is_idle(6, 0)
-
-    async def generate_message(self) -> Message:
-        message = await ai_service_async.generate_reply(self.user_session, self.prompt)
-        return message
-
 # TODO: Broken
-class AskingForReply(ActiveBehavior):
+class AskingForReply(BaseActiveBehavior):
     def __init__(self, user_session: UserSession, bot):
         super(AskingForReply, self).__init__(user_session, bot, name="Asking For Reply")
         self.waiting_minutes: int = random.randint(3, 5)

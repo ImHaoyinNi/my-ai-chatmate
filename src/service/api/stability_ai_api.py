@@ -69,7 +69,7 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
                     error_json = response.json()
                     raise Exception(f"API Error: {error_json}")
         except Exception as e:
-            print(f"An error occurred when generating image: {str(e)}")
+            logger.error(f"An error occurred when generating image: {str(e)}")
             raise Exception(f"An error occurred when generating image: {str(e)}")
 
     async def generate_image_v1(self, prompt: str) -> Optional[str]:
@@ -108,7 +108,7 @@ stability_ai_api = StabilityAIAPI(api_key=config.stability_ai_api_key)
 
 async def main():
     prompt = "A young sexy blonde woman with big boobs and ear rings and long black ponytail in baseball uniform, athletic build, natural makeup, sweaty but smiling, locker room mirror selfie, wearing golden snitch necklace, warm lighting, unreal engine"
-    prompt2 = "A young Chinese woman with long black ponytail wearing fitted baseball uniform, athletic curves visible, natural makeup with flushed cheeks, biting lip playfully in locker room mirror, soft golden hour lighting, anime-inspired rendering"
+    prompt2 = " A woman with long black ponytail wearing an oversized sweater, stirring a pot in cozy kitchen, soft golden lighting, steam rising, natural makeup with flushed cheeks, anime-style rendering"
     base64_image = await stability_ai_api.generate_image(prompt=prompt2)
 
     if base64_image:

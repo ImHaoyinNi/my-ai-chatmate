@@ -1,13 +1,13 @@
 from sphinx.util import requests
 
 from src.service.ai_service.ai_service_async import ai_service_async
-from src.service.behavior.active_behaviors.active_behavior import ActiveBehavior
+from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
 from src.service.message_processor.Message import Message
 from src.service.user_session import UserSession
 from src.utils.config import config
 
 
-class ReadNews(ActiveBehavior):
+class ReadNews(BaseActiveBehavior):
     def __init__(self, user_session: UserSession, bot):
         super(ReadNews, self).__init__(user_session, bot, name="Read News")
         self.prompt_1 = "This is some latest news. "

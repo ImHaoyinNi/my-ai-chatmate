@@ -16,7 +16,7 @@ from src.service.message_processor.Message import MessageType, Message, message_
 from src.service.user_session import UserSession
 from src.utils.constants import new_message, Role
 from src.utils.logger import logger
-from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_prompt
+from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_prompt, remove_quotes
 
 
 class AiServiceAsync:
@@ -36,6 +36,7 @@ class AiServiceAsync:
         image_prompt = get_image_prompt(ai_reply)
         if image_prompt != "":
             ai_reply = remove_image_prompt(ai_reply)
+        ai_reply = remove_quotes(ai_reply)
 
         try:
             match message_type:
@@ -144,7 +145,8 @@ class AiServiceAsync:
         except Exception as e:
             logger.error(e)
             return Message(MessageType.BAD_MESSAGE,
-                           f"Your bot tried to send you\n <image_prompt> {prompt} </image_prompt>\n But it got censored by stability ai.",
+                           f"Your bot tried to send you\n <image_prompt> {prompt} </image_prompt>\n "
+                           f"But it got an error: {e}.",
                            prompt)
 
 ai_service_async = AiServiceAsync()

@@ -8,8 +8,9 @@ from src.utils.constants import new_message, Role
 
 
 class UserSession:
-    def __init__(self, user_id: int):
+    def __init__(self, user_id: int, user_full_name: str = ""):
         self.user_id: int = user_id
+        self._user_full_name: str = user_full_name
         self._reply_with_voice: bool = False
         self._enable_push: bool = config.user_session_settings["enable_push"]
         self._enable_image: bool = config.user_session_settings["enable_image"]
@@ -44,7 +45,7 @@ class UserSession:
             self.context.pop(1)
 
     def set_persona(self, persona: str):
-        prompt = get_persona_prompt(persona)
+        prompt = get_persona_prompt(persona, self.full_name)
         self.system_message = new_message(Role.SYSTEM, prompt)
         self.persona = persona
         self.clear_context()
@@ -62,6 +63,15 @@ class UserSession:
             return True
         else:
             return False
+
+    @property
+    def full_name(self) -> str:
+        return self._user_full_name
+
+    @full_name.setter
+    def full_name(self, value: str):
+        self._user_full_name = value
+        self.set_persona(self.persona)
 
     @property
     def reply_with_voice(self):
@@ -96,7 +106,7 @@ class UserSessionManager:
     sessions = {}
 
     @staticmethod
-    def get_session(user_id) -> UserSession:
+    def get_session(user_id: int) -> UserSession:
         if user_id not in UserSessionManager.sessions:
             UserSessionManager.sessions[user_id] = UserSession(user_id)
         return UserSessionManager.sessions[user_id]

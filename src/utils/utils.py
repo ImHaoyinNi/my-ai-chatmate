@@ -38,7 +38,6 @@ async def send_message(bot, user_id: int, message: Message):
         case MessageType.NONE:
             return
 
-
 def get_image_prompt(message: str) -> str:
     start_tag = "<image_prompt>"
     end_tag = "</image_prompt>"
@@ -60,6 +59,11 @@ def remove_image_prompt(message: str) -> str:
 
 def remove_think_tag(text: str):
     return re.sub(r'(?s)<think>.*?</think>', '', text).strip()
+
+def remove_quotes(text: str) -> str:
+    if text.startswith('"') and text.endswith('"'):
+        return text[1:-1]
+    return text
 
 def get_current_time(timezone="America/Chicago") -> (int, int):
     tz = pytz.timezone(timezone)
