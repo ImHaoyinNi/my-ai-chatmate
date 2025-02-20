@@ -63,14 +63,18 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
             async with httpx.AsyncClient() as client:
                 response = await client.post(url, headers=self.headers_v2, data=data, files=files)
                 if response.status_code == 200:
-                    content = response.read()
+                    content = await response.aread()
                     return base64.b64encode(content).decode('utf-8')
                 else:
-                    error_json = response.json()
-                    raise Exception(f"API Error: {error_json}")
+                    try:
+                        error_json = await response.json()
+                        error_message = error_json.get('error', 'Unknown error occurred')
+                    except:
+                        error_message = f"HTTP Error {response.status_code}: {response.text}"
+                    raise Exception(error_message)
         except Exception as e:
             logger.error(f"An error occurred when generating image: {str(e)}")
-            raise Exception(f"An error occurred when generating image: {str(e)}")
+            raise Exception(str(e))
 
     async def generate_image_v1(self, prompt: str) -> Optional[str]:
         try:

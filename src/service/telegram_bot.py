@@ -97,7 +97,7 @@ class TelegramBot:
         logger.info("Starting telegram bot")
         job_queue = self.app.job_queue
         interval = config.cronjob_settings['interval']
-        job_queue.run_repeating(push_message, interval=10, first=0)
+        job_queue.run_repeating(push_message, interval=interval, first=0)
         job_queue.run_repeating(TelegramBot.send_messages, interval=3, first=0)
         self.app.run_polling()
 
