@@ -16,6 +16,8 @@ from src.service.message_processor.Message import Message, MessageType
 async def send_message(bot, user_id: int, message: Message):
     match message.message_type:
         case MessageType.TEXT:
+            if message.content.startswith('"') and message.content.endswith('"'):
+                message.content = message.content[1:-1]
             sentences = split_message_randomly(message.content)
             for s in sentences:
                 await bot.send_chat_action(chat_id=user_id, action=ChatAction.TYPING)
@@ -61,8 +63,10 @@ def remove_think_tag(text: str):
     return re.sub(r'(?s)<think>.*?</think>', '', text).strip()
 
 def remove_quotes(text: str) -> str:
-    if text.startswith('"') and text.endswith('"'):
-        return text[1:-1]
+    if text.startswith('"'):
+        text = text[1:]
+    if text.endswith('"'):
+        text = text[:-1]
     return text
 
 def get_current_time(timezone="America/Chicago") -> (int, int):
