@@ -1,5 +1,8 @@
 name: Build and Deploy Docker Image
 
+env:
+  CONTAINER_NAME: my-ai-chatmate
+
 # Trigger on push to main or manual trigger
 on:
   push:
@@ -80,11 +83,11 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
           
           # Stop and remove the old container
-          docker stop container_name || true
-          docker rm container_name || true
+          docker stop ${{ env.CONTAINER_NAME }} || true
+          docker rm ${{ env.CONTAINER_NAME }} || true
           
           # Run the new container with environment label
-          docker run -d --name container_name \
+          docker run -d --name ${{ env.CONTAINER_NAME }} \
             --restart unless-stopped \
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
           
