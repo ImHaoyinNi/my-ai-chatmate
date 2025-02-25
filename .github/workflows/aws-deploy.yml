@@ -1,10 +1,19 @@
-name: Deploy on AWS
+name: Build and Deploy Docker Image
 
 # Trigger on push to main or manual trigger
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to (dev/prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
 
 jobs:
   build-and-push:
@@ -15,7 +24,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Create .env file
+    # Create .env file with dynamic ENV value
     - name: Create .env file
       run: |
         cat > .env << EOF
@@ -26,12 +35,11 @@ jobs:
         GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}
         STABILITY_AI_API_KEY=${{ secrets.STABILITY_AI_API_KEY }}
         AIHORDE_API_KEY=${{ secrets.AIHORDE_API_KEY }}
-        ENV=${{ secrets.ENV }}
-        TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
         PROD_BOT_TOKEN=${{ secrets.PROD_BOT_TOKEN }}
         DEV_BOT_TOKEN=${{ secrets.DEV_BOT_TOKEN }}
         EOF
 
+    # Set the date for tag with build number
     - name: Set date tag
       id: date
       run: echo "DATE_TAG=$(date +'%Y%m%d').${{ github.run_number }}" >> $GITHUB_ENV
@@ -54,8 +62,7 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
 
     # Deploy to your server via SSH
     - name: Deploy to server
@@ -64,19 +71,22 @@ jobs:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
           # Login to Docker Hub
           echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
           
           # Pull the latest image
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:latest
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
           
           # Stop and remove the old container
-          docker stop my-ai-chatmate || true
-          docker rm my-ai-chatmate || true
+          docker stop container_name || true
+          docker rm container_name || true
           
-          # Run the new container
-          docker run -d --name my-ai-chatmate --restart unless-stopped ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:latest
+          # Run the new container with environment label
+          docker run -d --name container_name \
+            --restart unless-stopped \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
           
           # Clean up unused images
           docker image prune -f
