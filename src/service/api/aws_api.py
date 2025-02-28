@@ -33,15 +33,7 @@ class AwsApi(TTSAPIInterface):
             Engine="neural"
         )
         if "AudioStream" in res:
-            if config.env == "production":
-                return io.BytesIO(res["AudioStream"].read())
-            process = subprocess.run(
-                ["ffmpeg", "-i", "pipe:0", "-c:a", "libopus", "-b:a", "32k", "-f", "ogg", "pipe:1"],
-                input=res["AudioStream"].read(),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL
-            )
-            return io.BytesIO(process.stdout)
+            return io.BytesIO(res["AudioStream"].read())
         else:
             return io.BytesIO()
 

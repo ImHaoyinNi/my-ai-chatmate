@@ -103,7 +103,7 @@ class UserSession:
 
 
 class UserSessionManager:
-    sessions = {}
+    sessions: dict[int, UserSession] = {}
 
     @staticmethod
     def get_session(user_id: int) -> UserSession:
@@ -122,6 +122,10 @@ class UserSessionManager:
             if time.time() - user_session.last_active > 3600 * hours + 60 * minutes:
                 idle_sessions.append(user_session)
         return idle_sessions
+
+    @staticmethod
+    def get_all_user_id() -> list[int]:
+        return list(UserSessionManager.sessions.keys())
 
 if __name__ == '__main__':
     m = new_message(Role.SYSTEM, "")

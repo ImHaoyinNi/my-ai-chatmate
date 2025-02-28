@@ -44,6 +44,11 @@
     "sleep_time_hour_end": 7
   },
 
-  "idle_minutes": 60
+  "idle_minutes": 60,
+
+  "redis_settings": {
+    "host": "redis-server",
+    "port": 6379
+  }
 
 }

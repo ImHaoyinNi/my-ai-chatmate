@@ -21,6 +21,9 @@ class Config:
         self.read_news_settings: dict = {}
         self.greeting_settings : dict = {}
 
+        # Redis
+        self.redis_settings: dict = {}
+
         # Env and secrets
         self.nvidia_api_key: str = ""
         self.telegram_bot_token: str = ""
@@ -52,11 +55,13 @@ class Config:
             self.read_news_settings = config['read_news_settings']
             self.greeting_settings = config['greeting_settings']
 
+            self.redis_settings = config['redis_settings']
+
     def load_env(self):
         load_dotenv()
         self.env = os.getenv("ENV")
         self.nvidia_api_key = os.getenv("NVIDIA_API_KEY")
-        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.gnews_api_key=os.getenv("GNEWS_API_KEY")
         self.openai_api_key=os.getenv("OPENAI_API_KEY")
@@ -67,7 +72,6 @@ class Config:
             self.telegram_bot_token = os.getenv("PROD_BOT_TOKEN")
         else:
             self.telegram_bot_token = os.getenv("DEV_BOT_TOKEN")
-
 
 config = Config()
 config.load_env()

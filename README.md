@@ -8,6 +8,9 @@ Delete bark, whisper
 docker build -t haoyinni/my-ai-chatmate:20250208-1 . 
 ### Connect to aws
 ssh -i ~/.ssh/ai-chatbot.pem ec2-user@18.206.124.131
+### Redis Portfowarding
+docker run --name redis-server --network ai-chatbot -d -p 6379:6379 redis
+ssh -i ~/.ssh/ai-chatbot.pem -L 6379:localhost:6379 ec2-user@18.206.124.131
 ### Pull image
 docker pull haoyinni/my-ai-chatmate:20250208-1
 ### Run image

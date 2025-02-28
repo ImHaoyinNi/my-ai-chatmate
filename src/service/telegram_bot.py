@@ -71,7 +71,7 @@ class TelegramBot:
 
     @staticmethod
     async def send_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
-        for user_id in message_queue.queue.keys():
+        for user_id in UserSessionManager.get_all_user_id():
             while message_queue.get_length(user_id) > 0:
                 message = message_queue.dequeue(user_id)
                 await send_message(context.bot, user_id, message)

@@ -41,6 +41,11 @@
   "is_awake_settings": {
     "sleep_time_hour_start": 0,
     "sleep_time_hour_end": 7
+  },
+
+  "redis_settings": {
+    "host": "localhost",
+    "port": 6379
   }
 
 }

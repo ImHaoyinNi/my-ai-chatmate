@@ -44,11 +44,11 @@ class AiServiceAsync:
                     # Voice
                     if user_session.reply_with_voice:
                         voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-                        message = Message(MessageType.VOICE, voice, prompt)
+                        message = Message(MessageType.VOICE, voice, prompt, user_session.user_id)
                         message_queue.enqueue(user_session.user_id, message)
                     else:
                         # Text
-                        message = Message(MessageType.TEXT, ai_reply, prompt)
+                        message = Message(MessageType.TEXT, ai_reply, prompt, user_session.user_id)
                         message_queue.enqueue(user_session.user_id, message)
                     # Image
                     if image_prompt != "" and user_session.enable_image:
@@ -56,12 +56,12 @@ class AiServiceAsync:
                         message_queue.enqueue(user_session.user_id, image_message)
                     return message
                 case MessageType.TEXT:
-                    message = Message(MessageType.TEXT, ai_reply, prompt)
+                    message = Message(MessageType.TEXT, ai_reply, prompt, user_session.user_id)
                     message_queue.enqueue(user_session.user_id, message)
                     return message
                 case MessageType.VOICE:
                     voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-                    message = Message(MessageType.TEXT, voice, prompt)
+                    message = Message(MessageType.VOICE, voice, prompt, user_session.user_id)
                     message_queue.enqueue(user_session.user_id, message)
                     return message
                 case MessageType.IMAGE:
@@ -70,13 +70,13 @@ class AiServiceAsync:
                         image_message = await self.generate_image(user_session, image_prompt)
                         message_queue.enqueue(user_session.user_id, image_message)
                         return image_message
-                    else: return Message(MessageType.NONE, ai_reply, prompt)
+                    else: return Message(MessageType.NONE, ai_reply, prompt, user_session.user_id)
                 case _:
                     logger.error(f"Unknown message type: {message_type}")
-                    return Message(MessageType.BAD_MESSAGE, ai_reply, prompt)
+                    return Message(MessageType.BAD_MESSAGE, ai_reply, prompt, user_session.user_id)
         except Exception as e:
-            logger.error(e)
-            return Message(MessageType.NONE, ai_reply, prompt)
+            logger.error("An error happens when generating reply: " + str(e))
+            return Message(MessageType.NONE, ai_reply, prompt, user_session.user_id)
 
     async def generate_text_response(self, user_session: UserSession) -> str:
         start_time = time.time()
@@ -141,13 +141,14 @@ class AiServiceAsync:
             end_time = time.time()
             duration = round(end_time - start_time, 1)
             logger.info(f"====={self.text2image_api.api_name} takes {duration} seconds to generate image")
-            return Message(MessageType.IMAGE, image_io, prompt)
+            return Message(MessageType.IMAGE, image_io, prompt, user_session.user_id)
         except Exception as e:
             logger.error(e)
             return Message(MessageType.BAD_MESSAGE,
                            f"Your bot tried to send you\n <image_prompt> {prompt} </image_prompt>\n "
                            f"But it got an error: {e}.",
-                           prompt)
+                           prompt,
+                           user_session.user_id)
 
 ai_service_async = AiServiceAsync()
 async def main():

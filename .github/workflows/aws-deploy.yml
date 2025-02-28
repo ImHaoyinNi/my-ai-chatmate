@@ -89,6 +89,7 @@ jobs:
           # Run the new container with environment label
           docker run -d --name ${{ env.CONTAINER_NAME }} \
             --restart unless-stopped \
+            --network ai-chatbot \
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_REPO_NAME }}:${{ env.DATE_TAG }}
           
           # Clean up unused images

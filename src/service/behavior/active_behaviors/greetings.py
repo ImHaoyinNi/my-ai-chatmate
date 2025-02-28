@@ -44,4 +44,4 @@ class Greetings(BaseActiveBehavior):
             self.good_morning_minute = random.randint(0, 20)
             res = await ai_service_async.generate_reply(self.user_session, self.good_night_prompt)
             return res
-        return Message(MessageType.NONE, "This is a none message", "")
+        return Message(MessageType.NONE, "This is a none message", "", self.user_session.user_id)
