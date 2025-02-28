@@ -1,13 +1,10 @@
-import configparser
 from dataclasses import dataclass
-
 import aiohttp
 import base64
 import json
-from typing import Optional, Dict, Any
-
+from typing import Optional
 import httpx
-from aiohttp import FormData
+import asyncio
 
 from src.service.api.interface.async_interface.text2image_api_interface_async import Text2ImageAPIInterfaceAsync
 from src.utils.config import config
@@ -143,6 +140,4 @@ async def main():
 
 # Run the example
 if __name__ == "__main__":
-    import asyncio
-
     asyncio.run(main())
