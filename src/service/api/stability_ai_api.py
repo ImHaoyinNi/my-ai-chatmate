@@ -49,7 +49,27 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
         if self.version == "v1":
             return await self.generate_image_v1(prompt)
         else:
-            return await self.generate_image_v2(prompt)
+            # TODO: sometimes stability api returns empty error message, in this case, retry 3 times
+            max_retries = 3
+            retry_count = 0
+            last_error = None
+
+            while retry_count < max_retries:
+                try:
+                    return await self.generate_image_v2(prompt)
+                except Exception as e:
+                    error_message = str(e)
+                    last_error = e
+                    # Only retry if the error message is empty or very generic
+                    if not error_message or error_message == "None" or error_message == "":
+                        retry_count += 1
+                        logger.warning(f"Empty error message received, retrying ({retry_count}/{max_retries})...")
+                        await asyncio.sleep(1)  # Add a small delay between retries
+                    else:
+                        raise e
+
+            logger.error(f"Failed to generate image after {max_retries} retries")
+            raise last_error
 
     async def generate_image_v2(self, prompt) -> Optional[str]:
         url = f"{self.api_host_v2}/stable-image/generate/core"

@@ -10,8 +10,8 @@ from pydub import AudioSegment
 
 from src.service.api.interface.sync.llm_api_interface import LLMAPIInterface
 from src.service.api.interface.sync.voice_api_interface import VoiceAPIInterface
-from src.utils.utils import Speaker
-from src.utils.utils import logger
+from src.utils.constants import Speaker
+from src.utils.logger import logger
 
 
 class OllamaApi(LLMAPIInterface, VoiceAPIInterface):
