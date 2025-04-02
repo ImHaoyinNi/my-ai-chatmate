@@ -3,16 +3,16 @@ import base64
 import io
 import time
 
-from src.service.api.aws_api import aws_api
+from src.service.api.aws_api_async import aws_api_async
 from src.service.api.interface.async_interface.image2text_api_interface_async import Image2TextAPIInterfaceAsync
 from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
 from src.service.api.interface.async_interface.speech2text_api_interface_async import Speech2TextAPIInterfaceAsync
 from src.service.api.interface.async_interface.text2image_api_interface_async import Text2ImageAPIInterfaceAsync
-from src.service.api.interface.sync.tts_api_interface import TTSAPIInterface
+from src.service.api.interface.async_interface.tts_api_interface_async import TTSAPIInterfaceAsync
 from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
 from src.service.api.openai_api import openai_api
 from src.service.api.stability_ai_api import stability_ai_api
-from src.service.message_processor.Message import MessageType, Message, message_queue
+from src.service.message_processor.Message import MessageType, Message, chat_message_store
 from src.service.user_session import UserSession
 from src.utils.constants import new_message, Role
 from src.utils.logger import logger
@@ -22,14 +22,14 @@ from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_pro
 class AiServiceAsync:
     def __init__(self):
         self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
-        self.tts_api: TTSAPIInterface = aws_api
+        self.tts_api: TTSAPIInterfaceAsync = aws_api_async
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
         self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
         self.text2image_api: Text2ImageAPIInterfaceAsync = stability_ai_api
 
-    async def generate_reply(self, user_session: UserSession, prompt: str,
-                             message_type: MessageType = MessageType.ANY) -> Message:
-        user_session.add_user_context(prompt)
+    async def generate_reply(self, user_session: UserSession, user_message: str,
+                             expected_message_type: MessageType = MessageType.ANY) -> Message:
+        user_session.add_user_context(user_message)
         ai_reply: str = await self.generate_text_response(user_session)
         ai_reply = remove_think_tag(ai_reply)
         user_session.add_bot_context(ai_reply)
@@ -39,44 +39,44 @@ class AiServiceAsync:
         ai_reply = remove_quotes(ai_reply)
 
         try:
-            match message_type:
+            match expected_message_type:
                 case MessageType.ANY:
                     # Voice
                     if user_session.reply_with_voice:
-                        voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-                        message = Message(MessageType.VOICE, voice, prompt, user_session.user_id)
-                        message_queue.enqueue(user_session.user_id, message)
+                        voice = await self.tts_api.text_to_speech(ai_reply, "Ruth")
+                        message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)
+                        chat_message_store.enqueue(user_session.user_id, message)
                     else:
                         # Text
-                        message = Message(MessageType.TEXT, ai_reply, prompt, user_session.user_id)
-                        message_queue.enqueue(user_session.user_id, message)
+                        message = Message(MessageType.TEXT, ai_reply, user_message, user_session.user_id)
+                        chat_message_store.enqueue(user_session.user_id, message)
                     # Image
                     if image_prompt != "" and user_session.enable_image:
                         image_message = await self.generate_image(user_session, image_prompt)
-                        message_queue.enqueue(user_session.user_id, image_message)
+                        chat_message_store.enqueue(user_session.user_id, image_message)
                     return message
                 case MessageType.TEXT:
-                    message = Message(MessageType.TEXT, ai_reply, prompt, user_session.user_id)
-                    message_queue.enqueue(user_session.user_id, message)
+                    message = Message(MessageType.TEXT, ai_reply, user_message, user_session.user_id)
+                    chat_message_store.enqueue(user_session.user_id, message)
                     return message
                 case MessageType.VOICE:
                     voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
-                    message = Message(MessageType.VOICE, voice, prompt, user_session.user_id)
-                    message_queue.enqueue(user_session.user_id, message)
+                    message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)
+                    chat_message_store.enqueue(user_session.user_id, message)
                     return message
                 case MessageType.IMAGE:
                     # Image
                     if image_prompt != "" and user_session.enable_image:
                         image_message = await self.generate_image(user_session, image_prompt)
-                        message_queue.enqueue(user_session.user_id, image_message)
+                        chat_message_store.enqueue(user_session.user_id, image_message)
                         return image_message
-                    else: return Message(MessageType.NONE, ai_reply, prompt, user_session.user_id)
+                    else: return Message(MessageType.NONE, ai_reply, user_message, user_session.user_id)
                 case _:
-                    logger.error(f"Unknown message type: {message_type}")
-                    return Message(MessageType.BAD_MESSAGE, ai_reply, prompt, user_session.user_id)
+                    logger.error(f"Unknown message type: {expected_message_type}")
+                    return Message(MessageType.BAD_MESSAGE, ai_reply, user_message, user_session.user_id)
         except Exception as e:
             logger.error("An error happens when generating reply: " + str(e))
-            return Message(MessageType.NONE, ai_reply, prompt, user_session.user_id)
+            return Message(MessageType.NONE, ai_reply, user_message, user_session.user_id)
 
     async def generate_text_response(self, user_session: UserSession) -> str:
         start_time = time.time()

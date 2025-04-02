@@ -10,7 +10,7 @@ class Config:
     def __init__(self):
         # API
         self.nvidia_api_settings: dict = {}
-        self.default_persona: str = ""
+        self.default_persona_code: str = ""
         self.user_session_settings: dict = {}
         self.ai_horde_api_settings: dict = {}
         self.stability_ai_api_settings: dict = {}
@@ -46,7 +46,7 @@ class Config:
             # API
             self.nvidia_api_settings = config['nvidia_api_settings']
             self.ai_horde_api_settings = config['ai_horde_api_settings']
-            self.default_persona = config['default_persona']
+            self.default_persona_code = config['default_persona_code']
             self.user_session_settings = config['user_session_settings']
             self.stability_ai_api_settings = config['stability_ai_api_settings']
 

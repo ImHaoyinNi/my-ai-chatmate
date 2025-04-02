@@ -57,12 +57,12 @@ class Message:
         return cls(message_type=message_type, content=content, prompt=prompt, user_id=user_id, timestamp=data["timestamp"])
 
 
-class MessageQueue:
+class ChatMessageStore:
     def __init__(self, host: str = 'localhost', port: int = 6379, db: int = 0, password: Optional[str] = None):
         self.redis_client = redis_client
 
     def _get_queue_key(self, user_id: int) -> str:
-        return f"message_queue:{user_id}"
+        return f"chat_message_store:{user_id}"
 
     def enqueue(self, user_id: int, message: Message) -> None:
         queue_key = self._get_queue_key(user_id)
@@ -82,4 +82,4 @@ class MessageQueue:
         return self.redis_client.llen(queue_key)
 
 
-message_queue = MessageQueue()
+chat_message_store = ChatMessageStore()

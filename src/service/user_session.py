@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 import pytz
-from src.service.persona import get_persona_prompt
+from src.persona.persona_manager import get_persona_prompt
 from src.utils.config import config
 from src.utils.constants import new_message, Role
 
@@ -19,8 +19,8 @@ class UserSession:
 
         self.system_message: dict = new_message(Role.SYSTEM, "")
         self.context: list[dict] = [self.system_message]
-        self.persona = config.default_persona
-        self.set_persona(self.persona)
+        self.persona_code = config.default_persona_code
+        self.set_persona(self.persona_code)
 
     def to_string(self) -> str:
         houston_tz = pytz.timezone('America/Chicago')
@@ -44,10 +44,12 @@ class UserSession:
         if len(self.context) > self._max_context_length:
             self.context.pop(1)
 
-    def set_persona(self, persona: str):
-        prompt = get_persona_prompt(persona, self.full_name)
+    def set_persona(self, persona_code: str):
+        prompt = get_persona_prompt(persona_code, self.full_name)
+        if not prompt:
+            raise ValueError(f"Invalid persona code: {persona_code}")
         self.system_message = new_message(Role.SYSTEM, prompt)
-        self.persona = persona
+        self.persona_code = persona_code
         self.clear_context()
 
     def get_context(self):
@@ -71,7 +73,7 @@ class UserSession:
     @full_name.setter
     def full_name(self, value: str):
         self._user_full_name = value
-        self.set_persona(self.persona)
+        self.set_persona(self.persona_code)
 
     @property
     def reply_with_voice(self):

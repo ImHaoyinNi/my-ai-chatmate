@@ -20,7 +20,8 @@ class OpenAIAPI(Speech2TextAPIInterfaceAsync, LLMAPIInterfaceAsync):
     async def speech_to_text(self, speech: io.BytesIO) -> str:
         transcription = await self.client.audio.transcriptions.create(
             model="whisper-1",
-            file=speech
+            file=speech,
+            language="en"
         )
         logger.info(f"User said: {transcription.text}")
         return transcription.text

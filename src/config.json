@@ -16,7 +16,7 @@
     "version": "v2"
   },
 
-  "default_persona": "civen",
+  "default_persona_code": "civen",
   "persona_civen": {
     "speaker": ""
   },

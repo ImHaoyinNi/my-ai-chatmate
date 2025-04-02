@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.service.persona import get_persona_prompt, get_persona_types
+from src.persona.persona_manager import get_persona_prompt, get_persona_codes, get_persona_description
 from src.service.user_session import UserSessionManager
 
 
@@ -22,46 +22,50 @@ class COMMAND(Enum):
 
 def run_command(user_id, command: str, arguments: list[str]) -> str:
     user_session = UserSessionManager.get_session(user_id)
-    match command.lower():
-        case COMMAND.HELP.value:
-            return help_doc()
-        case COMMAND.GET_CONTEXT.value:
-            formatted_context = format_context(user_session.get_context())
-            return formatted_context
-        case COMMAND.CLEAR_CONTEXT.value:
-            user_session.clear_context()
-            return "session cleared"
-        case COMMAND.MY_CHATID.value:
-            return f"Your id is: {user_id}"
-        case COMMAND.GET_MY_SESSION.value:
-            return user_session.to_string()
-        case COMMAND.GET_PERSONA.value:
-            personality = "Personality: " + user_session.persona
-            prompt = "Prompt: " + get_persona_prompt(user_session.persona)
-            return personality + "\n" + prompt
-        case COMMAND.SET_PERSONA.value:
-            user_session.set_persona(arguments[0])
-            return "personality set to " + arguments[0]
-        case COMMAND.ENABLE_VOICE.value:
-            user_session.reply_with_voice = True
-            return "voice is enabled. Bot will now reply with voice."
-        case COMMAND.DISABLE_VOICE.value:
-            user_session.reply_with_voice = False
-            return "voice is disabled. Bot will now reply with text."
-        case COMMAND.ENABLE_PUSH.value:
-            user_session.enable_push = True
-            return "push is enabled. Bot will now initiate conversation."
-        case COMMAND.DISABLE_PUSH.value:
-            user_session.enable_push = False
-            return "push is disabled. Bot will not initiate conversation."
-        case COMMAND.ENABLE_IMAGE.value:
-            user_session.enable_push = True
-            return "push is enabled. Bot will now initiate conversation."
-        case COMMAND.DISABLE_PUSH.value:
-            user_session.enable_push = False
-            return "push is disabled. Bot will not initiate conversation."
-        case _:
-            return "unknown command"
+    try:
+        match command.lower():
+            case COMMAND.HELP.value:
+                return help_doc()
+            case COMMAND.GET_CONTEXT.value:
+                formatted_context = format_context(user_session.get_context())
+                return formatted_context
+            case COMMAND.CLEAR_CONTEXT.value:
+                user_session.clear_context()
+                return "session cleared"
+            case COMMAND.MY_CHATID.value:
+                return f"Your id is: {user_id}"
+            case COMMAND.GET_MY_SESSION.value:
+                return user_session.to_string()
+            case COMMAND.GET_PERSONA.value:
+                personality = "Current Persona: " + user_session.persona_code
+                description = "Description: " + get_persona_description(user_session.persona_code)
+                prompt = "Prompt: " + get_persona_prompt(user_session.persona_code)
+                return personality + "\n" + description + "\n" + prompt
+            case COMMAND.SET_PERSONA.value:
+                user_session.set_persona(arguments[0])
+                return "personality set to " + arguments[0]
+            case COMMAND.ENABLE_VOICE.value:
+                user_session.reply_with_voice = True
+                return "voice is enabled. Bot will reply with voice."
+            case COMMAND.DISABLE_VOICE.value:
+                user_session.reply_with_voice = False
+                return "voice is disabled. Bot will always reply with texts."
+            case COMMAND.ENABLE_PUSH.value:
+                user_session.enable_push = True
+                return "push is enabled. Bot may initiate conversation."
+            case COMMAND.DISABLE_PUSH.value:
+                user_session.enable_push = False
+                return "push is disabled. Bot won't initiate conversation."
+            case COMMAND.ENABLE_IMAGE.value:
+                user_session.enable_push = True
+                return "image is enabled. Bot may send you images."
+            case COMMAND.DISABLE_PUSH.value:
+                user_session.enable_push = False
+                return "image is disabled. Bot won't send you images"
+            case _:
+                return "unknown command"
+    except Exception as e:
+        return f"An error occurred: {e}"
 
 def format_context(context: list[dict]) -> str:
     items = [item for item in context]
@@ -84,26 +88,26 @@ def format_context(context: list[dict]) -> str:
 def help_doc():
     doc = f"""Available Commands:
     /help
-        Display this help message with all available commands
+        Get all available commands
     /get-context
-        Show the current conversation context and history
+        Show chat history
     /clear-context
-        Clear all conversation history and start fresh
+        Clear chat history and start a fresh chat
     /get-my-session:
-        Display the current conversation settings
+        Get the current conversation settings
     /get-my-chatid:
-        Display your user id
+        Get your user id
         
     /get-persona
-        Display the currently active personality setting
+        Get the current active persona
     /set-persona
-        Available persona: {get_persona_types()}
-        Usage: /set-personality chick
+        Available persona: {get_persona_codes()}
+        Example: /set-personality civen
 
     /enable-voice
-        Enable voice interaction mode
+        Make bot reply with voice
     /disable-voice
-        Disable voice interaction mode and return to text-only
+        Make bot never reply with voice
     
     /enable-image
         Allow bot to send images
