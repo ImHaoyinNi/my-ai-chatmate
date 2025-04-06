@@ -2,6 +2,8 @@ import time
 from datetime import datetime
 
 import pytz
+
+from src.data.user_info import insert_user
 from src.persona.persona_manager import get_persona_prompt
 from src.utils.config import config
 from src.utils.constants import new_message, Role
@@ -128,6 +130,10 @@ class UserSessionManager:
     @staticmethod
     def get_all_user_id() -> list[int]:
         return list(UserSessionManager.sessions.keys())
+
+    @staticmethod
+    def is_exist(user_id: int) -> bool:
+        return user_id in UserSessionManager.sessions
 
 if __name__ == '__main__':
     m = new_message(Role.SYSTEM, "")

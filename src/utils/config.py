@@ -8,7 +8,7 @@ from src.utils.logger import logger
 
 class Config:
     def __init__(self):
-        # API
+        # API settings
         self.nvidia_api_settings: dict = {}
         self.default_persona_code: str = ""
         self.user_session_settings: dict = {}
@@ -21,8 +21,9 @@ class Config:
         self.read_news_settings: dict = {}
         self.greeting_settings : dict = {}
 
-        # Redis
+        # Redis and postgres db
         self.redis_settings: dict = {}
+        self.postgres_db: dict = {}
 
         # Env and secrets
         self.nvidia_api_key: str = ""
@@ -34,6 +35,8 @@ class Config:
         self.openai_api_key: str = ""
         self.ai_horde_api_key: str = ""
         self.stability_ai_api_key: str = ""
+        self.postgres_db_username: str = ""
+        self.postgres_db_password: str = ""
 
     def load_config(self):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -50,12 +53,15 @@ class Config:
             self.user_session_settings = config['user_session_settings']
             self.stability_ai_api_settings = config['stability_ai_api_settings']
 
+            # Behavior
             self.cronjob_settings = config['cronjob_settings']
             self.is_awake_settings = config['is_awake_settings']
             self.read_news_settings = config['read_news_settings']
             self.greeting_settings = config['greeting_settings']
 
+            # DB
             self.redis_settings = config['redis_settings']
+            self.postgres_db = config['postgres_settings']
 
     def load_env(self):
         load_dotenv()
@@ -67,6 +73,8 @@ class Config:
         self.openai_api_key=os.getenv("OPENAI_API_KEY")
         self.ai_horde_api_key=os.getenv("AIHORDE_API_KEY")
         self.stability_ai_api_key=os.getenv("STABILITY_AI_API_KEY")
+        self.postgres_db_username  = os.getenv("POSTGRES_DB_USERNAME")
+        self.postgres_db_password = os.getenv("POSTGRES_DB_PASSWORD")
 
         if self.env == "production":
             self.telegram_bot_token = os.getenv("PROD_BOT_TOKEN")

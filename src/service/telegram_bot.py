@@ -7,6 +7,8 @@ from telegram import Update, File
 from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, ContextTypes
 
+from src.data.message_history import insert_message
+from src.data.user_info import insert_user
 from src.service.behavior.behavior_tree import push_message
 from src.service.message_processor.Message import chat_message_store
 from src.service.message_processor.user_message_processor import UserMessageProcessor
@@ -76,14 +78,18 @@ class TelegramBot:
                 message = chat_message_store.dequeue(user_id)
                 await send_message(context.bot, user_id, message)
                 logger.info(f"Sent a {message.message_type.value} message to {user_id}")
+                insert_message(message)
 
     @staticmethod
     def register_user(update: Update):
         user_id = update.message.chat_id
+        if UserSessionManager.is_exist(user_id):
+           return
         user_full_name = update.message.from_user.full_name
         user_session = UserSessionManager.get_session(user_id)
         if user_session.full_name != user_full_name:
             user_session.full_name = user_full_name
+        insert_user(user_id, True, user_name=user_full_name, phone_number="")
 
     def register_handlers(self):
         self.app.add_handler(CommandHandler("start", TelegramBot.set_job))

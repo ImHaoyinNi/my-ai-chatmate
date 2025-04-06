@@ -60,7 +60,7 @@ class AiServiceAsync:
                     chat_message_store.enqueue(user_session.user_id, message)
                     return message
                 case MessageType.VOICE:
-                    voice = self.tts_api.text_to_speech(ai_reply, "Ruth")
+                    voice = await self.tts_api.text_to_speech(ai_reply, "Ruth")
                     message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)
                     chat_message_store.enqueue(user_session.user_id, message)
                     return message

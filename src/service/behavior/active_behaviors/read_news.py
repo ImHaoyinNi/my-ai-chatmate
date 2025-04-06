@@ -1,6 +1,6 @@
 from sphinx.util import requests
 
-from src.service.ai_service.ai_service_async import ai_service_async
+from src.service.ai_service.ai_service import ai_service_async
 from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
 from src.service.message_processor.Message import Message
 from src.service.user_session import UserSession

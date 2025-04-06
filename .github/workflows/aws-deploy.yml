@@ -40,6 +40,8 @@ jobs:
         AIHORDE_API_KEY=${{ secrets.AIHORDE_API_KEY }}
         PROD_BOT_TOKEN=${{ secrets.PROD_BOT_TOKEN }}
         DEV_BOT_TOKEN=${{ secrets.DEV_BOT_TOKEN }}
+        POSTGRES_DB_USERNAME=${{ secrets.POSTGRES_DB_USERNAME }}
+        POSTGRES_DB_PASSWORD=${{ secrets.POSTGRES_DB_PASSWORD }}
         EOF
 
     # Set the date for tag with build number

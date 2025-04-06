@@ -1,7 +1,7 @@
 import asyncio
 import io
 
-from src.service.ai_service.ai_service_async import ai_service_async
+from src.service.ai_service.ai_service import ai_service_async
 from src.service.commands import run_command
 from src.service.message_processor.Message import Message
 from src.service.user_session import UserSessionManager
@@ -24,7 +24,7 @@ class UserMessageProcessor:
     @staticmethod
     async def process_image(user_id, image_b64: str) -> Message:
         user_session = UserSessionManager.get_session(user_id)
-        description = ai_service_async.describe_image(user_session, image_b64)
+        description = await ai_service_async.describe_image(user_session, image_b64)
         prompt = "I sent you an image. Here is the description of the image: \n" + description
         res = await ai_service_async.generate_reply(user_session, prompt)
         return res

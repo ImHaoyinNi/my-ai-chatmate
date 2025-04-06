@@ -46,6 +46,11 @@
   "redis_settings": {
     "host": "localhost",
     "port": 6379
+  },
+
+  "postgres_settings": {
+    "host": "localhost",
+    "port": 5432
   }
 
 }

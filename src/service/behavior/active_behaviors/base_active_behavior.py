@@ -4,7 +4,7 @@ import re
 
 import py_trees
 
-from src.service.ai_service.ai_service_async import ai_service_async
+from src.service.ai_service.ai_service import ai_service_async
 from src.service.message_processor.Message import Message, MessageType
 from src.service.user_session import UserSession
 from src.utils.constants import Role
