@@ -53,7 +53,7 @@
 
   "postgres_settings": {
     "host": "postgres-db",
-    "port": "5432"
+    "port": 5432
   }
 
 }
