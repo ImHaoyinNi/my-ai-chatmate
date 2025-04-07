@@ -10,7 +10,7 @@ psycopg2-binary==2.9.10
 py_trees==2.3.0
 pydub==0.25.1
 python-dotenv==1.1.0
-python-telegram-bot==22.0
+python-telegram-bot==21.10
 pytz==2024.1
 Requests==2.32.3
 sounddevice==0.5.1
