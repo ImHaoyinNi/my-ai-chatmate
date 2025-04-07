@@ -15,6 +15,7 @@ python-telegram-bot==21.10
 python-telegram-bot[job-queue]==21.10
 pytz==2024.1
 Requests==2.32.3
+redis==5.0.3
 sounddevice==0.5.1
 soundfile==0.13.1
 Sphinx==8.2.1
