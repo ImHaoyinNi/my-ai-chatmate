@@ -7,7 +7,7 @@ numpy==2.2.3
 openai==1.65.1
 Pillow==11.1.0
 promptgen==0.0.2
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
 py_trees==2.3.0
 pydub==0.25.1
 python-dotenv==1.0.1
