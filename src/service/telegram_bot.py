@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import io
 import os
@@ -10,7 +11,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from src.data.message_history import insert_message
 from src.data.user_info import insert_user
 from src.service.behavior.behavior_tree import push_message
-from src.service.message_processor.Message import chat_message_store
+from src.service.message_processor.Message import chat_message_store, Message
 from src.service.message_processor.user_message_processor import UserMessageProcessor
 from src.service.user_session import UserSessionManager
 from src.utils.config import config
@@ -73,12 +74,20 @@ class TelegramBot:
 
     @staticmethod
     async def send_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
+        tasks = []
         for user_id in UserSessionManager.get_all_user_id():
             while chat_message_store.get_length(user_id) > 0:
                 message = chat_message_store.dequeue(user_id)
-                await send_message(context.bot, user_id, message)
-                logger.info(f"Sent a {message.message_type.value} message to {user_id}")
-                insert_message(message)
+                task = asyncio.create_task(
+                    TelegramBot.process_message(context.bot, user_id, message)
+                )
+                tasks.append(task)
+
+    @staticmethod
+    async def process_message(bot, user_id: int, message: Message):
+        await send_message(bot, user_id, message)
+        logger.info(f"Sent a {message.message_type.value} message to {user_id}")
+        insert_message(message)
 
     @staticmethod
     def register_user(update: Update):

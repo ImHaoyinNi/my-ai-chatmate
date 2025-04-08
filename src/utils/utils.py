@@ -25,6 +25,7 @@ async def send_message(bot, user_id: int, message: Message):
                 await bot.send_message(chat_id=user_id, text=s)
         case MessageType.VOICE:
             await bot.send_chat_action(chat_id=user_id, action=ChatAction.RECORD_VOICE)
+            await sleep(delay=time_to_type(message.content))
             await bot.send_voice(chat_id=user_id, voice=message.content)
         case MessageType.IMAGE:
             await bot.send_photo(
@@ -112,8 +113,15 @@ def split_message_randomly(text: str, min_group_size: int=1, max_group_size: int
 
     return result
 
-def time_to_type(sentence: str) -> float:
-    delay = 1 + (len(sentence) / 100) * 4
+
+def time_to_type(content: str | io.BytesIO) -> float:
+    if isinstance(content, str):
+        delay = 1 + (len(content) / 100) * 4
+    else:
+        content.seek(0, io.SEEK_END)
+        size_bytes = content.tell()
+        content.seek(0)  # Reset position
+        delay = 1 + (size_bytes / 10240)  # 10KB ≈ 1 second
     delay = min(5.0, max(1.0, delay))
     actual_delay = random.uniform(delay * 0.8, delay * 1.2)
     return actual_delay
