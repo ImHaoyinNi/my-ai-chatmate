@@ -4,14 +4,14 @@ from src.utils.config import config
 
 image_generation_cost = config.credits_settings['image_generation_cost']
 llm_cost = config.credits_settings['llm_cost']
-voice_cost = config.credits_settings['voice_cost']
+voice_message_cost = config.credits_settings['voice_message_cost']
 
 def charge_user(user_id: int, message: Message):
     if message.message_type == MessageType.BAD_MESSAGE:
         return
     total_cost = llm_cost
     if message.message_type == MessageType.VOICE:
-        total_cost += voice_cost
+        total_cost += voice_message_cost
     if message.message_type == MessageType.IMAGE:
         total_cost += image_generation_cost
 
