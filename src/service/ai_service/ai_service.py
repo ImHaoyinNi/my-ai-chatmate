@@ -8,7 +8,7 @@ from src.service.api.interface.async_interface.image2text_api_interface_async im
 from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
 from src.service.api.interface.async_interface.speech2text_api_interface_async import Speech2TextAPIInterfaceAsync
 from src.service.api.interface.async_interface.text2image_api_interface_async import Text2ImageAPIInterfaceAsync
-from src.service.api.interface.async_interface.tts_api_interface_async import TTSAPIInterfaceAsync
+from src.service.api.interface.async_interface.tts_api_interface_async import TTSAPIInterface
 from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
 from src.service.api.openai_api import openai_api
 from src.service.api.stability_ai_api import stability_ai_api
@@ -22,7 +22,7 @@ from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_pro
 class AiServiceAsync:
     def __init__(self):
         self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
-        self.tts_api: TTSAPIInterfaceAsync = aws_api_async
+        self.tts_api: TTSAPIInterface = aws_api_async
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
         self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
         self.text2image_api: Text2ImageAPIInterfaceAsync = stability_ai_api

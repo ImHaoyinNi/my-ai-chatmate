@@ -1,7 +1,7 @@
 import io
 from abc import ABC, abstractmethod
 
-class TTSAPIInterfaceAsync(ABC):
+class TTSAPIInterface(ABC):
     @property
     @abstractmethod
     def api_name(self) -> str:
