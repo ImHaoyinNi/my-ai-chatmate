@@ -22,7 +22,7 @@
   },
   "user_session_settings": {
     "max_context_length": 100,
-    "enable_push": true,
+    "enable_push": false,
     "enable_image": true
   },
   "max_context_length": 100,
