@@ -11,9 +11,14 @@ class Config:
         # API settings
         self.nvidia_api_settings: dict = {}
         self.default_persona_code: str = ""
-        self.user_session_settings: dict = {}
         self.ai_horde_api_settings: dict = {}
         self.stability_ai_api_settings: dict = {}
+
+        # User settings
+        self.user_session_settings: dict = {}
+
+        # Credit settings
+        self.credits_settings: dict = {}
 
         # Behavior
         self.cronjob_settings: dict = {}
@@ -50,9 +55,11 @@ class Config:
             self.nvidia_api_settings = config['nvidia_api_settings']
             self.ai_horde_api_settings = config['ai_horde_api_settings']
             self.default_persona_code = config['default_persona_code']
-            self.user_session_settings = config['user_session_settings']
             self.stability_ai_api_settings = config['stability_ai_api_settings']
-
+            # User
+            self.user_session_settings = config['user_session_settings']
+            # Credit
+            self.credits_settings = config['credits_settings']
             # Behavior
             self.cronjob_settings = config['cronjob_settings']
             self.is_awake_settings = config['is_awake_settings']

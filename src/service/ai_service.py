@@ -19,7 +19,7 @@ from src.utils.logger import logger
 from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_prompt, remove_quotes
 
 
-class AiServiceAsync:
+class AIService:
     def __init__(self):
         self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
         self.tts_api: TTSAPIInterface = aws_api_async
@@ -150,12 +150,12 @@ class AiServiceAsync:
                            prompt,
                            user_session.user_id)
 
-ai_service_async = AiServiceAsync()
+ai_service = AIService()
 async def main():
     session = UserSession(123)
-    message1 = await ai_service_async.generate_reply(session, "What is your name")
-    message2 = await ai_service_async.generate_reply(session, "What is your age")
-    message3 = await ai_service_async.text2voice(session, "I love you!")
+    message1 = await ai_service.generate_reply(session, "What is your name")
+    message2 = await ai_service.generate_reply(session, "What is your age")
+    message3 = await ai_service.text2voice(session, "I love you!")
     print(message1)
     print(message2)
     print(message3)

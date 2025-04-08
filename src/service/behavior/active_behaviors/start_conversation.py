@@ -1,4 +1,4 @@
-from src.service.ai_service.ai_service import ai_service_async
+from src.service.ai_service import ai_service
 from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
 from src.service.message_processor.Message import Message
 from src.service.user_session import UserSession
@@ -27,5 +27,5 @@ class StartConversation(BaseActiveBehavior):
 
     async def generate_message(self) -> Message:
         print("Generating message.....")
-        message = await ai_service_async.generate_reply(self.user_session, self.prompt)
+        message = await ai_service.generate_reply(self.user_session, self.prompt)
         return message

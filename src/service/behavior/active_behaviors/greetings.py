@@ -1,6 +1,6 @@
 import random
 
-from src.service.ai_service.ai_service import ai_service_async
+from src.service.ai_service import ai_service
 from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
 from src.service.message_processor.Message import Message, MessageType
 from src.service.user_session import UserSession
@@ -38,10 +38,10 @@ class Greetings(BaseActiveBehavior):
         hour, minute = get_current_time()
         if hour == 8:
             self.good_night_minute = random.randint(0, 59)
-            res = await ai_service_async.generate_reply(self.user_session, self.good_morning_prompt)
+            res = await ai_service.generate_reply(self.user_session, self.good_morning_prompt)
             return res
         if hour == self.good_night_hour:
             self.good_morning_minute = random.randint(0, 20)
-            res = await ai_service_async.generate_reply(self.user_session, self.good_night_prompt)
+            res = await ai_service.generate_reply(self.user_session, self.good_night_prompt)
             return res
         return Message(MessageType.NONE, "This is a none message", "", self.user_session.user_id)

@@ -1,30 +1,87 @@
-from src.data.general import connect_db
+from dataclasses import dataclass
+from typing import Optional
+
+from src.data.connect_db import connect_db
 import psycopg2
 from datetime import datetime
 
 from src.utils.logger import logger
 
+@dataclass
+class UserInfo:
+    user_id: int
+    has_subscribed: bool
+    user_name: Optional[str]
+    phone_number: Optional[str]
+    credits: int
+    created_at: datetime
+    updated_at: datetime
+    role: str
+    gender: Optional[str]
 
-def insert_user(user_id: int, has_subscribed: bool, user_name: str, phone_number: str):
+def verify_user(user_info: UserInfo) -> bool:
+    if user_info is None:
+        return False
+    if user_info.role == 'admin':
+        return True
+    if user_info.credits <= 0 or not user_info.has_subscribed:
+        return False
+    else:
+        return True
+
+def get_user(user_id: int) -> Optional[UserInfo]:
+    conn = connect_db()
+    if conn is None:
+        return None
+    try:
+        cur = conn.cursor()
+        query = """
+        SELECT user_id, has_subscribed, user_name, phone_number, credits, created_at, updated_at, gender
+        FROM users
+        WHERE user_id = %s;
+        """
+        cur.execute(query, (user_id,))
+        row = cur.fetchone()
+        if row:
+            return UserInfo(
+                user_id=row[0],
+                has_subscribed=row[1],
+                user_name=row[2],
+                phone_number=row[3],
+                created_at=row[4],
+                updated_at=row[5],
+                gender=row[6],
+                credits=row[7],
+                role=row[8],
+            )
+        else:
+            logger.info(f"No user found with ID {user_id}")
+            return None
+    except Exception as e:
+        logger.error(f"Error fetching user: {e}")
+        return None
+    finally:
+        conn.close()
+
+def insert_user(user_id: int, has_subscribed: bool, user_name: str, phone_number: str, credits: int):
     conn = connect_db()
     if conn is None:
         return
     try:
         cur = conn.cursor()
         query = """
-        INSERT INTO users (user_id, has_subscribed, user_name, phone_number, created_at, updated_at)
+        INSERT INTO users (user_id, has_subscribed, user_name, phone_number, credits, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cur.execute(query, (user_id, has_subscribed, user_name, phone_number, datetime.now(), datetime.now()))
+        cur.execute(query, (user_id, has_subscribed, user_name, phone_number, credits, datetime.now(), datetime.now()))
         conn.commit()
-        print(f"User with ID {user_id} inserted successfully.")
+        logger.info(f"User with ID {user_id} inserted successfully.")
     except Exception as e:
-        print(f"Error inserting user: {e}")
+        logger.info(f"Error inserting user {user_id}: {e}")
     finally:
         conn.close()
 
-# Function to update user details
-def update_user(user_id: int, has_subscribed: bool=None , user_name: str=None, phone_number: str=None):
+def update_user(user_id: int, has_subscribed: bool=None, user_name: str=None, phone_number: str=None, credits: int=None):
     conn = connect_db()
     if conn is None:
         return
@@ -42,6 +99,9 @@ def update_user(user_id: int, has_subscribed: bool=None , user_name: str=None, p
         if phone_number:
             query += ", phone_number = %s"
             values.append(phone_number)
+        if credits:
+            query += ", credits = %s"
+            values.append(credits)
 
         query += " WHERE user_id = %s"
         values.append(user_id)
@@ -50,11 +110,10 @@ def update_user(user_id: int, has_subscribed: bool=None , user_name: str=None, p
         conn.commit()
         logger.info(f"User with ID {user_id} updated successfully.")
     except Exception as e:
-        print(f"Error updating user: {e}")
+        logger.info(f"Error updating user {user_id}: {e}")
     finally:
         conn.close()
 
-# Function to delete a user
 def delete_user(user_id: int):
     conn = connect_db()
     if conn is None:
@@ -70,7 +129,6 @@ def delete_user(user_id: int):
     finally:
         conn.close()
 
-# Function to fetch all users
 def fetch_all_users():
     conn = connect_db()
     if conn is None:
@@ -87,7 +145,6 @@ def fetch_all_users():
     finally:
         conn.close()
 
-# Example usage:
 if __name__ == "__main__":
     # Insert a new user
     insert_user(1, True, 'John Doe', '123-456-7890')

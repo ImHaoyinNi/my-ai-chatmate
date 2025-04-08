@@ -1,4 +1,4 @@
-from src.data.general import connect_db
+from src.data.connect_db import connect_db
 import io
 from src.service.message_processor.Message import Message, MessageType
 from src.utils.logger import logger
