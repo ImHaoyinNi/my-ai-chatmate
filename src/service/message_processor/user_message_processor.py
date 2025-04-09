@@ -6,6 +6,7 @@ from src.service.ai_service import ai_service
 from src.service.commands import run_command
 from src.service.message_processor.Message import Message, chat_message_store, MessageType
 from src.service.user_session import UserSessionManager
+from src.utils.constants import UserRole
 
 
 class UserMessageProcessor:
@@ -74,7 +75,7 @@ async def main(datetime=None):
         credits=1000,
         created_at=datetime.datetime.now(),
         updated_at=datetime.datetime.now(),
-        role="regular",
+        role=UserRole.REGULAR.value,
         gender="male"
     )
     res = await UserMessageProcessor.process_text(user_info, 'How many states in USA')

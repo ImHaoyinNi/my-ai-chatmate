@@ -5,6 +5,7 @@ from src.data.connect_db import connect_db
 import psycopg2
 from datetime import datetime
 
+from src.utils.constants import UserRole
 from src.utils.logger import logger
 
 @dataclass
@@ -63,17 +64,17 @@ def get_user(user_id: int) -> Optional[UserInfo]:
     finally:
         conn.close()
 
-def insert_user(user_id: int, has_subscribed: bool, user_name: str, phone_number: str, credits: int):
+def insert_user(user_id: int, has_subscribed: bool, user_name: str, phone_number: str, credits: int, role: str=UserRole.REGULAR.value):
     conn = connect_db()
     if conn is None:
         return
     try:
         cur = conn.cursor()
         query = """
-        INSERT INTO users (user_id, has_subscribed, user_name, phone_number, credits, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s);
+        INSERT INTO users (user_id, has_subscribed, user_name, phone_number, credits, created_at, updated_at, role)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
-        cur.execute(query, (user_id, has_subscribed, user_name, phone_number, credits, datetime.now(), datetime.now()))
+        cur.execute(query, (user_id, has_subscribed, user_name, phone_number, credits, datetime.now(), datetime.now(), role))
         conn.commit()
         logger.info(f"User with ID {user_id} inserted successfully.")
     except Exception as e:

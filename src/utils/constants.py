@@ -6,6 +6,11 @@ class Role(Enum):
     SYSTEM = "system"
     TOOL = "tool"
 
+class UserRole(Enum):
+    ADMIN = "admin"
+    REGULAR = "regular"
+    PREMIUM = "premium"
+
 class Speaker(Enum):
     WOMAN = "v2/en_speaker_9"
 

@@ -1,11 +1,11 @@
 from typing import List
 
-from src.persona.models.civen import civen
+from src.persona.models.sihika import sihika
 from src.persona.models.succubus import succubus
 from src.persona.models.xiao_ling import xiao_ling
 from src.persona.persona_model import Persona
 
-persona_store : List[Persona] = [civen, succubus, xiao_ling]
+persona_store : List[Persona] = [sihika, succubus, xiao_ling]
 
 
 def get_persona_prompt(persona_code: str, user_full_name: str="<USER_NAME>") -> str:
