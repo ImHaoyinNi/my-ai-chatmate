@@ -26,7 +26,7 @@
   "credits_settings" : {
     "default_user_credits": 1000,
     "llm_cost": 0,
-    "image_generation_cost": 10,
+    "image_generation_cost": 50,
     "voice_message_cost": 0
   },
 

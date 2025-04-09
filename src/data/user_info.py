@@ -37,7 +37,7 @@ def get_user(user_id: int) -> Optional[UserInfo]:
     try:
         cur = conn.cursor()
         query = """
-        SELECT user_id, has_subscribed, user_name, phone_number, credits, created_at, updated_at, gender
+        SELECT user_id, has_subscribed, user_name, phone_number, created_at, updated_at, gender, credits, role
         FROM users
         WHERE user_id = %s;
         """

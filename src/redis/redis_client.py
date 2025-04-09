@@ -50,18 +50,6 @@ class RedisClient:
         """
         return self.connection.set(key, value, ex=expiry)
 
-    def get(self, key: str) -> Optional[str]:
-        """
-        Get a string value from Redis.
-
-        Args:
-            key: The key to retrieve
-
-        Returns:
-            The value or None if key doesn't exist
-        """
-        return self.connection.get(key)
-
     # JSON operations
     def set_json(self, key: str, value: Any, expiry: Optional[int] = None) -> bool:
         """

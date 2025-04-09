@@ -17,12 +17,7 @@ class UserMessageProcessor:
             response = await ai_service.generate_reply(user_session, text)
             return response
         else:
-            message: Message = Message(MessageType.BAD_MESSAGE,
-                                       f"Bot cannot reply to your message. Your credits: {user_info.credits}. Your role: {user_info.role}",
-                                       "",
-                                       user_session.user_id)
-            chat_message_store.enqueue(user_session.user_id, message)
-            return message
+            return UserMessageProcessor.enqueue_bad_message(user_info)
 
     @staticmethod
     async def process_voice(user_info: UserInfo, voice_buffer: io.BytesIO) -> Message:
@@ -32,12 +27,7 @@ class UserMessageProcessor:
             response = await ai_service.generate_reply(user_session, text)
             return response
         else:
-            message: Message = Message(MessageType.BAD_MESSAGE,
-                                       f"Bot cannot reply to your message. Your credits: {user_info.credits}. Your role: {user_info.role}",
-                                       "",
-                                       user_session.user_id)
-            chat_message_store.enqueue(user_session.user_id, message)
-            return message
+            return UserMessageProcessor.enqueue_bad_message(user_info)
 
     @staticmethod
     async def process_image(user_info: UserInfo, image_b64: str) -> Message:
@@ -48,12 +38,7 @@ class UserMessageProcessor:
             res = await ai_service.generate_reply(user_session, prompt)
             return res
         else:
-            message: Message = Message(MessageType.BAD_MESSAGE,
-                                       f"Bot cannot reply to your message. Your credits: {user_info.credits}. Your role: {user_info.role}",
-                                       "",
-                                       user_session.user_id)
-            chat_message_store.enqueue(user_session.user_id, message)
-            return message
+            return UserMessageProcessor.enqueue_bad_message(user_info)
 
     @staticmethod
     def process_command(user_id, command) -> str:
@@ -65,6 +50,16 @@ class UserMessageProcessor:
         arguments = arguments.split(" ")
         return run_command(user_id, command, arguments)
 
+    @staticmethod
+    def enqueue_bad_message(user_info: UserInfo) -> Message:
+        message: Message = Message(MessageType.BAD_MESSAGE,
+                                   f"Bot cannot reply to your message.\n"
+                                   f"Your credits: {user_info.credits}.\n"
+                                   f"Your role: {user_info.role}",
+                                   "",
+                                   user_info.user_id)
+        chat_message_store.enqueue(user_info.user_id, message)
+        return message
 
 async def main(datetime=None):
     user_info: UserInfo = UserInfo(

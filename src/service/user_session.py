@@ -5,6 +5,7 @@ import pytz
 
 from src.data.user_info import insert_user
 from src.persona.persona_manager import get_persona_prompt
+from src.redis.redis_client import redis_client
 from src.utils.config import config
 from src.utils.constants import new_message, Role
 
