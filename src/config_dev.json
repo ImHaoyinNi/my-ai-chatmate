@@ -15,14 +15,11 @@
     "version": "v2"
   },
 
-  "default_persona_code": "civen",
-  "persona_civen": {
-    "speaker": ""
-  },
   "user_session_settings": {
     "max_context_length": 100,
     "enable_push": true,
-    "enable_image": true
+    "enable_image": true,
+    "default_persona_code": "sihika"
   },
   "max_context_length": 100,
   "credits_settings" : {

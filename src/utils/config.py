@@ -54,7 +54,7 @@ class Config:
             # API
             self.nvidia_api_settings = config['nvidia_api_settings']
             self.ai_horde_api_settings = config['ai_horde_api_settings']
-            self.default_persona_code = config['default_persona_code']
+            self.default_persona_code = config['user_session_settings']['default_persona_code']
             self.stability_ai_api_settings = config['stability_ai_api_settings']
             # User
             self.user_session_settings = config['user_session_settings']
