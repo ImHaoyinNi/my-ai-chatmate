@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import random
 import time
 
 from src.service.api.aws_api_async import aws_api_async
@@ -41,8 +42,8 @@ class AIService:
         try:
             match expected_message_type:
                 case MessageType.ANY:
-                    # Voice
-                    if user_session.reply_with_voice:
+                    # Voice: 10% chance of sending voice message
+                    if user_session.reply_with_voice or random.random() < 0.15:
                         voice = await self.tts_api.text_to_speech(ai_reply, "Ruth")
                         message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)
                         chat_message_store.enqueue(user_session.user_id, message)
