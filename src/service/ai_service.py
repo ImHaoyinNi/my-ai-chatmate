@@ -4,12 +4,12 @@ import io
 import random
 import time
 
-from src.service.api.aws_api_async import aws_api_async
-from src.service.api.interface.async_interface.image2text_api_interface_async import Image2TextAPIInterfaceAsync
-from src.service.api.interface.async_interface.llm_api_interface_async import LLMAPIInterfaceAsync
-from src.service.api.interface.async_interface.speech2text_api_interface_async import Speech2TextAPIInterfaceAsync
-from src.service.api.interface.async_interface.text2image_api_interface_async import Text2ImageAPIInterfaceAsync
-from src.service.api.interface.async_interface.tts_api_interface_async import TTSAPIInterface
+from src.service.api.aws_api import aws_api_async
+from src.service.api.interface.image2text_api_interface import Image2TextAPIInterfaceAsync
+from src.service.api.interface.llm_api_interface import LLMAPIInterfaceAsync
+from src.service.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
+from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
+from src.service.api.interface.tts_api_interface import TTSAPIInterface
 from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
 from src.service.api.openai_api import openai_api
 from src.service.api.stability_ai_api import stability_ai_api
@@ -71,7 +71,8 @@ class AIService:
                         image_message = await self.generate_image(user_session, image_prompt)
                         chat_message_store.enqueue(user_session.user_id, image_message)
                         return image_message
-                    else: return Message(MessageType.NONE, ai_reply, user_message, user_session.user_id)
+                    else:
+                        return Message(MessageType.NONE, ai_reply, user_message, user_session.user_id)
                 case _:
                     logger.error(f"Unknown message type: {expected_message_type}")
                     return Message(MessageType.BAD_MESSAGE, ai_reply, user_message, user_session.user_id)
@@ -91,8 +92,7 @@ class AIService:
         return res
 
     async def text2voice(self, user_session: UserSession, text: str) -> io.BytesIO:
-        # TODO: Make it async
-        audio_file = self.tts_api.text_to_speech(text, voice_id="Ruth")
+        audio_file = await self.tts_api.text_to_speech(text, voice_id="Ruth")
         return audio_file
 
     async def transcribe(self, voice_buffer: io.BytesIO) -> str:

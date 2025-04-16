@@ -5,7 +5,7 @@ import asyncio
 import io
 import sounddevice as sd
 import soundfile as sf
-from src.service.api.interface.async_interface.tts_api_interface_async import TTSAPIInterface
+from src.service.api.interface.tts_api_interface import TTSAPIInterface
 from src.utils.config import config
 from src.utils.utils import english_or_chinese
 
