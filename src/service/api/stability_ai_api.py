@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 import aiohttp
 import base64
-import json
-from typing import Optional
+from typing import Optional, List
 import httpx
 import asyncio
 
@@ -27,6 +26,8 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
         self.api_key = api_key
         self.api_host_v1 = "https://api.stability.ai"
         self.api_host_v2 = "https://api.stability.ai/v2beta"
+        self.available_models: List[str] = ["ultra", "core", "sd3"]
+        self.default_model: str = "core"
         self.headers_v1 = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -46,47 +47,31 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
         if self.version == "v1":
             return await self.generate_image_v1(prompt)
         else:
-            # TODO: sometimes stability api returns empty error message, in this case, retry 3 times
-            max_retries = 3
-            retry_count = 0
-            last_error = None
+            return await self.generate_image_v2(prompt, model_name=self.default_model)
 
-            while retry_count < max_retries:
-                try:
-                    return await self.generate_image_v2(prompt)
-                except Exception as e:
-                    error_message = str(e)
-                    last_error = e
-                    # Only retry if the error message is empty or very generic
-                    if not error_message or error_message == "None" or error_message == "":
-                        retry_count += 1
-                        logger.warning(f"Empty error message received, retrying ({retry_count}/{max_retries})...")
-                        await asyncio.sleep(1)  # Add a small delay between retries
-                    else:
-                        raise e
-
-            logger.error(f"Failed to generate image after {max_retries} retries")
-            raise last_error
-
-    async def generate_image_v2(self, prompt) -> Optional[str]:
-        url = f"{self.api_host_v2}/stable-image/generate/core"
+    async def generate_image_v2(self, prompt: str, model_name: str = "core") -> Optional[str]:
+        if model_name not in self.available_models:
+            raise TypeError(f"Model {model_name} is not available")
+        url = f"{self.api_host_v2}/stable-image/generate/{model_name}"
         try:
             data = {
                 "prompt": prompt,
-                "output_format": "webp",
+                "output_format": "jpeg" if model_name == "sd3" else "webp",
             }
-            files = {"none": ''}
-
-            async with httpx.AsyncClient() as client:
-                response = await client.post(url, headers=self.headers_v2, data=data, files=files)
+            files = {"none": ("dummy.txt", "")}
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    url,
+                    headers=self.headers_v2,
+                    data=data,
+                    files=files,
+                )
                 if response.status_code == 200:
                     content = await response.aread()
                     return base64.b64encode(content).decode('utf-8')
-                elif response.status_code == 403:
-                    data = json.loads(response.text)
-                    error_message = data["errors"][0]
-                    error_message = f"HTTP Error {response.status_code}: {error_message}"
-                    raise Exception(error_message)
+                raw_text = await response.aread()
+                logger.error(f"Error response: {raw_text}")
+                raise Exception(f"HTTP {response.status_code}: {raw_text}")
         except Exception as e:
             logger.error(f"An error occurred when generating image: {str(e)}")
             raise Exception(str(e))
@@ -126,12 +111,12 @@ class StabilityAIAPI(Text2ImageAPIInterfaceAsync):
 stability_ai_api = StabilityAIAPI(api_key=config.stability_ai_api_key)
 
 async def main():
-    prompt = "A young sexy blonde woman with big boobs and ear rings and long black ponytail in baseball uniform, athletic build, natural makeup, sweaty but smiling, locker room mirror selfie, wearing golden snitch necklace, warm lighting, unreal engine"
-    prompt2 = "A smirking blonde in silk robe leaning against doorway, one eyebrow arched, holding gaming controller suggestively, soft bedroom lighting catching golden curls, anime-noir tease vibe"
-    base64_image = await stability_ai_api.generate_image(prompt=prompt2)
+    prompt = "in the style of ck-mgs, nistyle, Special Ink-drawing mode, intricate linework with expressive contrasts, Mh1$AgThS2, Inkplash art on rice paper, sepia, henna , Silhouette Art, magnificent, inksplash image of stunning japanese woman, gold and red cheongsam, sitting in front of tori gate, facing viewer, dappled sunlight"
+    stability_ai_api.default_model = "core"
+    base64_image = await stability_ai_api.generate_image(prompt=prompt)
 
     if base64_image:
-        with open("generated_image.png", "wb") as f:
+        with open("generated_image6.png", "wb") as f:
             f.write(base64.b64decode(base64_image))
         print("Image generated successfully!")
     else:
@@ -141,3 +126,4 @@ async def main():
 # Run the example
 if __name__ == "__main__":
     asyncio.run(main())
+
