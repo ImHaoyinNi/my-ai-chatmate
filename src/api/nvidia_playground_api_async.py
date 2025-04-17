@@ -2,9 +2,9 @@ import httpx
 import asyncio
 from openai import AsyncOpenAI
 
-from src.service.api.interface.image2text_api_interface import Image2TextAPIInterfaceAsync
-from src.service.api.interface.llm_api_interface import LLMAPIInterfaceAsync
-from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
+from src.api.interface.image2text_api_interface import Image2TextAPIInterfaceAsync
+from src.api.interface.llm_api_interface import LLMAPIInterfaceAsync
+from src.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
 from src.utils.config import config
 from src.utils.constants import new_message, Role
 

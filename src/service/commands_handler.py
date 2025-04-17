@@ -1,7 +1,7 @@
 from enum import Enum
 
 from src.persona.persona_manager import get_persona_prompt, get_persona_codes, get_persona_description
-from src.service.user_session import UserSessionManager
+from src.agent.user_session import UserSessionManager
 
 
 class COMMAND(Enum):

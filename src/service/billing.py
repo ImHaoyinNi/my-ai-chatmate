@@ -1,5 +1,5 @@
 from src.data.user_info import get_user, UserInfo, update_user
-from src.service.message_processor.Message import Message, MessageType
+from src.data.Message import Message, MessageType
 from src.utils.config import config
 from src.utils.constants import UserRole
 

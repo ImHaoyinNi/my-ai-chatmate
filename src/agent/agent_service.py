@@ -4,23 +4,23 @@ import io
 import random
 import time
 
-from src.service.api.aws_api import aws_api_async
-from src.service.api.interface.image2text_api_interface import Image2TextAPIInterfaceAsync
-from src.service.api.interface.llm_api_interface import LLMAPIInterfaceAsync
-from src.service.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
-from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
-from src.service.api.interface.tts_api_interface import TTSAPIInterface
-from src.service.api.nvidia_playground_api_async import nvidia_playground_api_async
-from src.service.api.openai_api import openai_api
-from src.service.api.stability_ai_api import stability_ai_api
-from src.service.message_processor.Message import MessageType, Message, chat_message_store
-from src.service.user_session import UserSession
+from src.api.aws_api import aws_api_async
+from src.api.interface.image2text_api_interface import Image2TextAPIInterfaceAsync
+from src.api.interface.llm_api_interface import LLMAPIInterfaceAsync
+from src.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
+from src.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
+from src.api.interface.tts_api_interface import TTSAPIInterface
+from src.api.nvidia_playground_api_async import nvidia_playground_api_async
+from src.api.openai_api import openai_api
+from src.api.stability_ai_api import stability_ai_api
+from src.data.Message import MessageType, Message, chat_message_store
+from src.agent.user_session import UserSession
 from src.utils.constants import new_message, Role
 from src.utils.logger import logger
 from src.utils.utils import remove_think_tag, get_image_prompt, remove_image_prompt, remove_quotes
 
 
-class AIService:
+class AgentService:
     def __init__(self):
         self.llm_api: LLMAPIInterfaceAsync = nvidia_playground_api_async
         self.tts_api: TTSAPIInterface = aws_api_async
@@ -31,6 +31,7 @@ class AIService:
     async def generate_reply(self, user_session: UserSession, user_message: str,
                              expected_message_type: MessageType = MessageType.ANY) -> Message:
         user_session.add_user_context(user_message)
+        memories = user_session.recall_memory(user_message)
         ai_reply: str = await self.generate_text_response(user_session)
         ai_reply = remove_think_tag(ai_reply)
         user_session.add_bot_context(ai_reply)
@@ -43,7 +44,7 @@ class AIService:
             match expected_message_type:
                 case MessageType.ANY:
                     # Voice: 10% chance of sending voice message
-                    if user_session.reply_with_voice or random.random() < 0.15:
+                    if user_session.reply_with_voice and random.random() < 0.15:
                         voice = await self.tts_api.text_to_speech(ai_reply, "Ruth")
                         message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)
                         chat_message_store.enqueue(user_session.user_id, message)
@@ -151,12 +152,12 @@ class AIService:
                            prompt,
                            user_session.user_id)
 
-ai_service = AIService()
+agent_service = AgentService()
 async def main():
     session = UserSession(123)
-    message1 = await ai_service.generate_reply(session, "What is your name")
-    message2 = await ai_service.generate_reply(session, "What is your age")
-    message3 = await ai_service.text2voice(session, "I love you!")
+    message1 = await agent_service.generate_reply(session, "What is your name")
+    message2 = await agent_service.generate_reply(session, "What is your age")
+    message3 = await agent_service.text2voice(session, "I love you!")
     print(message1)
     print(message2)
     print(message3)

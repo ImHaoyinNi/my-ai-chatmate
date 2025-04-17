@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 import base64
 
-from src.service.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
+from src.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
 from src.utils.config import config
 from src.utils.logger import logger
 

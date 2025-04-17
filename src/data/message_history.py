@@ -1,6 +1,6 @@
 from src.data.connect_db import connect_db
 import io
-from src.service.message_processor.Message import Message, MessageType
+from src.data.Message import Message, MessageType
 from src.utils.logger import logger
 
 table_name = "message_history"

@@ -12,9 +12,9 @@ from src.data.message_history import insert_message
 from src.data.user_info import insert_user, get_user, UserInfo
 from src.service.behavior.behavior_tree import push_message
 from src.service.billing import charge_user
-from src.service.message_processor.Message import chat_message_store, Message
-from src.service.message_processor.user_message_processor import UserMessageProcessor
-from src.service.user_session import UserSessionManager
+from src.data.Message import chat_message_store, Message
+from src.service.user_message_processor import UserMessageProcessor
+from src.agent.user_session import UserSessionManager
 from src.utils.config import config
 from src.utils.logger import logger
 from src.utils.utils import send_message
@@ -68,11 +68,6 @@ class TelegramBot:
         await UserMessageProcessor.process_image(user_info, image_base64)
 
     @staticmethod
-    async def set_job(update: Update, context: CallbackContext) -> None:
-        interval = config.cronjob_settings['interval']
-        context.job_queue.run_repeating(push_message, interval=interval, first=0)
-
-    @staticmethod
     async def send_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
         tasks = []
         for user_id in UserSessionManager.get_all_user_id():
@@ -105,7 +100,6 @@ class TelegramBot:
         return user_info
 
     def register_handlers(self):
-        self.app.add_handler(CommandHandler("start", TelegramBot.set_job))
         self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, TelegramBot.handle_text, block=False))
         self.app.add_handler(MessageHandler(filters.VOICE, TelegramBot.handle_voice, block=False))
         self.app.add_handler(MessageHandler(filters.PHOTO, TelegramBot.handle_photo, block=False))
@@ -116,7 +110,7 @@ class TelegramBot:
         logger.info("Starting telegram bot")
         job_queue = self.app.job_queue
         interval = config.cronjob_settings['interval']
-        job_queue.run_repeating(push_message, interval=interval, first=0)
+        # job_queue.run_repeating(push_message, interval=interval, first=0)
         job_queue.run_repeating(TelegramBot.send_messages, interval=3, first=0)
         self.app.run_polling()
 

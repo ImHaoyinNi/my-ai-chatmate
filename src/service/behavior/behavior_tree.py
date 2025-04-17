@@ -9,7 +9,7 @@ from src.service.behavior.active_behaviors.start_conversation import StartConver
 from src.service.behavior.condition_node import IsPushEnabled, IsAwakeTime
 
 import py_trees
-from src.service.user_session import UserSessionManager, UserSession
+from src.agent.user_session import UserSessionManager, UserSession
 from telegram.ext import ContextTypes
 
 from src.utils.logger import logger

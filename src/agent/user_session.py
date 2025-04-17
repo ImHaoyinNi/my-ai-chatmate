@@ -1,11 +1,11 @@
 import time
 from datetime import datetime
+from typing import List, Dict
 
 import pytz
 
-from src.data.user_info import insert_user
+from src.agent.memory import memory
 from src.persona.persona_manager import get_persona_prompt
-from src.redis.redis_client import redis_client
 from src.utils.config import config
 from src.utils.constants import new_message, Role
 
@@ -14,15 +14,16 @@ class UserSession:
     def __init__(self, user_id: int, user_full_name: str = ""):
         self.user_id: int = user_id
         self._user_full_name: str = user_full_name
-        self._reply_with_voice: bool = False
+        self._reply_with_voice: bool = True
         self._enable_push: bool = config.user_session_settings["enable_push"]
         self._enable_image: bool = config.user_session_settings["enable_image"]
         self._last_active: float = -1
         self._max_context_length: int = config.user_session_settings["max_context_length"]
-
-        self.system_message: dict = new_message(Role.SYSTEM, "")
-        self.context: list[dict] = [self.system_message]
         self.persona_code = config.default_persona_code
+        self.persona_prompt = ""
+        # Order matters
+        self.system_message: Dict = new_message(Role.SYSTEM, "")
+        self.context: List[Dict] = [self.system_message]
         self.set_persona(self.persona_code)
 
     def to_string(self) -> str:
@@ -38,14 +39,23 @@ class UserSession:
 
     def add_user_context(self, user_input: str):
         self.context.append(new_message(Role.USER, user_input))
+        memory.add(self.context, user_id=self.user_id)
         self._last_active = time.time()
         if len(self.context) > self._max_context_length:
-            self.context.pop(1)
+            self.context.pop(1) # context[0] is system prompt
 
     def add_bot_context(self, bot_input):
         self.context.append(new_message(Role.ASSISTANT, bot_input))
+        memory.add(self.context, user_id=self.user_id)
         if len(self.context) > self._max_context_length:
             self.context.pop(1)
+
+    def recall_memory(self, query: str, limit: int = 3) -> str:
+        relevant_memories = memory.search(query=query, user_id=self.user_id, limit=3)
+        memories_str = "\nYour memories:\n" + "\n".join(f"- {entry['memory']}" for entry in relevant_memories["results"])
+        self.context[0] = new_message(Role.SYSTEM, self.system_message["content"] + memories_str)
+        return memories_str
+
 
     def set_persona(self, persona_code: str):
         prompt = get_persona_prompt(persona_code, self.full_name)
@@ -108,7 +118,7 @@ class UserSession:
 
 
 class UserSessionManager:
-    sessions: dict[int, UserSession] = {}
+    sessions: Dict[int, UserSession] = {}
 
     @staticmethod
     def get_session(user_id: int) -> UserSession:
@@ -117,19 +127,19 @@ class UserSessionManager:
         return UserSessionManager.sessions[user_id]
 
     @staticmethod
-    def get_all_sessions() -> list[UserSession]:
+    def get_all_sessions() -> List[UserSession]:
         return list(UserSessionManager.sessions.values())
 
     @staticmethod
-    def get_idle_user_session(hours: int, minutes: int = 0) -> list[UserSession]:
-        idle_sessions: list[UserSession] = []
+    def get_idle_user_session(hours: int, minutes: int = 0) -> List[UserSession]:
+        idle_sessions: List[UserSession] = []
         for user_session in UserSessionManager.sessions.values():
             if time.time() - user_session.last_active > 3600 * hours + 60 * minutes:
                 idle_sessions.append(user_session)
         return idle_sessions
 
     @staticmethod
-    def get_all_user_id() -> list[int]:
+    def get_all_user_id() -> List[int]:
         return list(UserSessionManager.sessions.keys())
 
     @staticmethod

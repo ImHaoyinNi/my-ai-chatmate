@@ -2,8 +2,8 @@ import asyncio
 import io
 from openai import AsyncOpenAI
 
-from src.service.api.interface.llm_api_interface import LLMAPIInterfaceAsync
-from src.service.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
+from src.api.interface.llm_api_interface import LLMAPIInterfaceAsync
+from src.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
 from src.utils.config import config
 from src.utils.logger import logger
 

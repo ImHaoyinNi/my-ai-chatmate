@@ -11,7 +11,7 @@ from PIL import Image
 from promptgen import generate_prompts
 from telegram.constants import ChatAction, ParseMode
 
-from src.service.message_processor.Message import Message, MessageType
+from src.data.Message import Message, MessageType
 
 async def send_message(bot, user_id: int, message: Message):
     match message.message_type:
@@ -61,7 +61,8 @@ def remove_image_prompt(message: str) -> str:
     return message
 
 def remove_think_tag(text: str):
-    return re.sub(r'(?s)<think>.*?</think>', '', text).strip()
+    # return re.sub(r'(?s)<think>.*?</think>', '', text).strip()
+    return re.sub(r'(?s)^.*?</think>', '', text).strip()
 
 def remove_quotes(text: str) -> str:
     if text.startswith('"'):

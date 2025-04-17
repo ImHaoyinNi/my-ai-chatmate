@@ -1,9 +1,9 @@
 from sphinx.util import requests
 
-from src.service.ai_service import ai_service
+from src.agent.agent_service import agent_service
 from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
-from src.service.message_processor.Message import Message
-from src.service.user_session import UserSession
+from src.data.Message import Message
+from src.agent.user_session import UserSession
 from src.utils.config import config
 
 
@@ -25,7 +25,7 @@ class ReadNews(BaseActiveBehavior):
 
     async def generate_message(self) -> Message:
         prompt = self.prompt_1 + self._pull_news() + self.prompt_2
-        message: Message = await ai_service.generate_reply(self.user_session, prompt)
+        message: Message = await agent_service.generate_reply(self.user_session, prompt)
         return message
 
     # TODO: Make it async

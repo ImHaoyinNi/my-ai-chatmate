@@ -4,9 +4,9 @@ import re
 
 import py_trees
 
-from src.service.ai_service import ai_service
-from src.service.message_processor.Message import Message, MessageType
-from src.service.user_session import UserSession
+from src.agent.agent_service import agent_service
+from src.data.Message import Message, MessageType
+from src.agent.user_session import UserSession
 from src.utils.constants import Role
 from src.utils.logger import logger
 from src.utils.utils import send_message
@@ -109,6 +109,6 @@ class AskingForReply(BaseActiveBehavior):
         return is_idle
 
     async def generate_message(self) -> Message:
-        message = await ai_service.generate_reply(self.user_session, self.prompt)
+        message = await agent_service.generate_reply(self.user_session, self.prompt)
         return message
 

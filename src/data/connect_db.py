@@ -1,7 +1,7 @@
 import psycopg2
-from datetime import datetime
 
 from src.utils.config import config
+from src.utils.logger import logger
 
 # Database connection parameters
 HOST = config.postgres_db['host']
@@ -21,5 +21,5 @@ def connect_db():
         )
         return conn
     except Exception as e:
-        print(f"Error connecting to database: {e}")
+        logger.error(f"Error connecting to database: {e}")
         return None

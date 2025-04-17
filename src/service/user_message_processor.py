@@ -2,10 +2,10 @@ import asyncio
 import io
 
 from src.data.user_info import UserInfo, verify_user
-from src.service.ai_service import ai_service
-from src.service.commands import run_command
-from src.service.message_processor.Message import Message, chat_message_store, MessageType
-from src.service.user_session import UserSessionManager
+from src.agent.agent_service import agent_service
+from src.service.commands_handler import run_command
+from src.data.Message import Message, chat_message_store, MessageType
+from src.agent.user_session import UserSessionManager
 from src.utils.constants import UserRole
 
 
@@ -14,7 +14,7 @@ class UserMessageProcessor:
     async def process_text(user_info: UserInfo, text: str) -> Message:
         user_session = UserSessionManager.get_session(user_info.user_id)
         if verify_user(user_info):
-            response = await ai_service.generate_reply(user_session, text)
+            response = await agent_service.generate_reply(user_session, text)
             return response
         else:
             return UserMessageProcessor.enqueue_bad_message(user_info)
@@ -23,8 +23,8 @@ class UserMessageProcessor:
     async def process_voice(user_info: UserInfo, voice_buffer: io.BytesIO) -> Message:
         user_session = UserSessionManager.get_session(user_info.user_id)
         if verify_user(user_info):
-            text = await ai_service.transcribe(voice_buffer)
-            response = await ai_service.generate_reply(user_session, text)
+            text = await agent_service.transcribe(voice_buffer)
+            response = await agent_service.generate_reply(user_session, text)
             return response
         else:
             return UserMessageProcessor.enqueue_bad_message(user_info)
@@ -33,9 +33,9 @@ class UserMessageProcessor:
     async def process_image(user_info: UserInfo, image_b64: str) -> Message:
         user_session = UserSessionManager.get_session(user_info.user_id)
         if verify_user(user_info):
-            description = await ai_service.describe_image(user_session, image_b64)
+            description = await agent_service.describe_image(user_session, image_b64)
             prompt = "I sent you an image. Here is the description of the image: \n" + description
-            res = await ai_service.generate_reply(user_session, prompt)
+            res = await agent_service.generate_reply(user_session, prompt)
             return res
         else:
             return UserMessageProcessor.enqueue_bad_message(user_info)

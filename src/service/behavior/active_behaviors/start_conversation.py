@@ -1,7 +1,7 @@
-from src.service.ai_service import ai_service
+from src.agent.agent_service import agent_service
 from src.service.behavior.active_behaviors.base_active_behavior import BaseActiveBehavior
-from src.service.message_processor.Message import Message
-from src.service.user_session import UserSession
+from src.data.Message import Message
+from src.agent.user_session import UserSession
 from src.utils.utils import get_current_time
 
 
@@ -27,5 +27,5 @@ class StartConversation(BaseActiveBehavior):
 
     async def generate_message(self) -> Message:
         print("Generating message.....")
-        message = await ai_service.generate_reply(self.user_session, self.prompt)
+        message = await agent_service.generate_reply(self.user_session, self.prompt)
         return message
