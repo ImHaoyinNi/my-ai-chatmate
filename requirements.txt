@@ -19,3 +19,4 @@ redis==5.0.3
 sounddevice==0.5.1
 soundfile==0.13.1
 Sphinx==8.2.1
+mem0ai==0.1.92
