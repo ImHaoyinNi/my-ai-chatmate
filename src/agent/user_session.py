@@ -17,6 +17,7 @@ class UserSession:
         self._reply_with_voice: bool = True
         self._enable_push: bool = config.user_session_settings["enable_push"]
         self._enable_image: bool = config.user_session_settings["enable_image"]
+        self._enable_long_term_memory: bool = False
         self._last_active: float = -1
         self._max_context_length: int = config.user_session_settings["max_context_length"]
         self.persona_code = config.default_persona_code
@@ -39,19 +40,23 @@ class UserSession:
 
     def add_user_context(self, user_input: str):
         self.context.append(new_message(Role.USER, user_input))
-        memory.add(self.context, user_id=self.user_id)
+        if self._enable_long_term_memory:
+            memory.add(new_message(Role.USER, user_input), user_id=self.user_id)
         self._last_active = time.time()
         if len(self.context) > self._max_context_length:
             self.context.pop(1) # context[0] is system prompt
 
     def add_bot_context(self, bot_input):
         self.context.append(new_message(Role.ASSISTANT, bot_input))
-        memory.add(self.context, user_id=self.user_id)
+        if self._enable_long_term_memory:
+            memory.add(new_message(Role.ASSISTANT, bot_input), user_id=self.user_id)
         if len(self.context) > self._max_context_length:
             self.context.pop(1)
 
     def recall_memory(self, query: str, limit: int = 3) -> str:
-        relevant_memories = memory.search(query=query, user_id=self.user_id, limit=3)
+        if not self._enable_long_term_memory:
+            return ""
+        relevant_memories = memory.search(query=query, user_id=self.user_id, limit=limit)
         memories_str = "\nYour memories:\n" + "\n".join(f"- {entry['memory']}" for entry in relevant_memories["results"])
         self.context[0] = new_message(Role.SYSTEM, self.system_message["content"] + memories_str)
         return memories_str
@@ -87,6 +92,14 @@ class UserSession:
     def full_name(self, value: str):
         self._user_full_name = value
         self.set_persona(self.persona_code)
+
+    @property
+    def enable_long_term_memory(self) -> bool:
+        return self._enable_long_term_memory
+
+    @enable_long_term_memory.setter
+    def enable_long_term_memory(self, value: bool):
+        self._enable_long_term_memory = value
 
     @property
     def reply_with_voice(self):

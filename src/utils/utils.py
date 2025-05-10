@@ -150,10 +150,6 @@ def save_base64_as_png(base64_string, output_filename="./output.png"):
         f.write(image_data)  # Save as PNG file
     print(f"Image saved as {output_filename}")
 
-def generate_image_prompt(text):
-    detailed_prompt = generate_prompts(text)
-    return detailed_prompt
-
 def compress_base64_image(image_b64, max_size=5 * 1024 * 1024, quality=90):
     """Compresses a base64-encoded image to ensure it does not exceed max_size.
     Args:

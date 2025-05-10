@@ -8,6 +8,7 @@ from telegram import Update, File
 from telegram.constants import ChatAction
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, ContextTypes
 
+from src.agent.event_generator import EventGenerator
 from src.data.message_history import insert_message
 from src.data.user_info import insert_user, get_user, UserInfo
 from src.service.behavior.behavior_tree import push_message
@@ -68,22 +69,25 @@ class TelegramBot:
         await UserMessageProcessor.process_image(user_info, image_base64)
 
     @staticmethod
-    async def send_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def process_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
+        async def process_message(bot, user_id: int, message: Message):
+            await send_message(bot, user_id, message)
+            logger.info(f"Sent a {message.message_type.value} message to {user_id}")
+            insert_message(message)
         tasks = []
         for user_id in UserSessionManager.get_all_user_id():
             while chat_message_store.get_length(user_id) > 0:
                 message = chat_message_store.dequeue(user_id)
                 charge_user(user_id, message)
                 task = asyncio.create_task(
-                    TelegramBot.process_message(context.bot, user_id, message)
+                    process_message(context.bot, user_id, message)
                 )
                 tasks.append(task)
+        # await asyncio.gather(*tasks)
 
     @staticmethod
-    async def process_message(bot, user_id: int, message: Message):
-        await send_message(bot, user_id, message)
-        logger.info(f"Sent a {message.message_type.value} message to {user_id}")
-        insert_message(message)
+    async def generate_events(context: ContextTypes.DEFAULT_TYPE) -> None:
+        await EventGenerator.generate_events()
 
     @staticmethod
     def register_user(update: Update) -> UserInfo:
@@ -109,9 +113,9 @@ class TelegramBot:
     def start(self):
         logger.info("Starting telegram bot")
         job_queue = self.app.job_queue
-        interval = config.cronjob_settings['interval']
-        # job_queue.run_repeating(push_message, interval=interval, first=0)
-        job_queue.run_repeating(TelegramBot.send_messages, interval=3, first=0)
+        interval = config.cronjob_settings['interval'] # In seconds
+        job_queue.run_repeating(TelegramBot.process_messages, interval=3, first=0)
+        job_queue.run_repeating(TelegramBot.generate_events, interval=100 * 60, first=0)
         self.app.run_polling()
 
 if __name__ == '__main__':

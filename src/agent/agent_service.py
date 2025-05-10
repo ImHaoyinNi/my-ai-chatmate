@@ -10,9 +10,9 @@ from src.api.interface.llm_api_interface import LLMAPIInterfaceAsync
 from src.api.interface.speech2text_api_interface import Speech2TextAPIInterfaceAsync
 from src.api.interface.text2image_api_interface import Text2ImageAPIInterfaceAsync
 from src.api.interface.tts_api_interface import TTSAPIInterface
+from src.api.local_image_generator_api import local_image_generator_api
 from src.api.nvidia_playground_api_async import nvidia_playground_api_async
 from src.api.openai_api import openai_api
-from src.api.stability_ai_api import stability_ai_api
 from src.data.Message import MessageType, Message, chat_message_store
 from src.agent.user_session import UserSession
 from src.utils.constants import new_message, Role
@@ -26,7 +26,7 @@ class AgentService:
         self.tts_api: TTSAPIInterface = aws_api_async
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
         self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
-        self.text2image_api: Text2ImageAPIInterfaceAsync = stability_ai_api
+        self.text2image_api: Text2ImageAPIInterfaceAsync = local_image_generator_api
 
     async def generate_reply(self, user_session: UserSession, user_message: str,
                              expected_message_type: MessageType = MessageType.ANY) -> Message:
@@ -43,7 +43,7 @@ class AgentService:
         try:
             match expected_message_type:
                 case MessageType.ANY:
-                    # Voice: 10% chance of sending voice message
+                    # Voice: 15% chance of sending voice message
                     if user_session.reply_with_voice and random.random() < 0.15:
                         voice = await self.tts_api.text_to_speech(ai_reply, "Ruth")
                         message = Message(MessageType.VOICE, voice, user_message, user_session.user_id)

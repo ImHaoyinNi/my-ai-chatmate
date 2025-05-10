@@ -14,7 +14,7 @@ class NvidiaPlaygroundAPIAsync(LLMAPIInterfaceAsync, Image2TextAPIInterfaceAsync
     def api_name(self):
         return "Nvidia Playground API"
 
-    def __init__(self, api_url, llm_name, image2text_api_url, text2image_api_url):
+    def __init__(self, api_url: str, llm_name: str, image2text_api_url: str, text2image_api_url: str):
         self._text_model = llm_name
         self._api_url = api_url
         self._api_name = "nvidia playground"

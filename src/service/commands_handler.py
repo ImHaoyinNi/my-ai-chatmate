@@ -17,6 +17,8 @@ class COMMAND(Enum):
     DISABLE_VOICE = "disable-voice"
     ENABLE_PUSH = "enable-push"
     DISABLE_PUSH = "disable-push"
+    ENABLE_LONG_TERM_MEMORY = "enable-long-term-memory"
+    DISABLE_LONG_TERM_MEMORY = "disable-long-term-memory"
     ENABLE_IMAGE = "enable-image"
     DISABLE_IMAGE = "disable-image"
 
@@ -50,6 +52,12 @@ def run_command(user_id, command: str, arguments: list[str]) -> str:
             case COMMAND.DISABLE_VOICE.value:
                 user_session.reply_with_voice = False
                 return "voice is disabled. Bot will always reply with texts."
+            case COMMAND.ENABLE_LONG_TERM_MEMORY.value:
+                user_session.enable_long_term_memory = True
+                return "long term memory is enabled."
+            case COMMAND.DISABLE_LONG_TERM_MEMORY.value:
+                user_session.enable_long_term_memory = False
+                return "long term memory is disabled."
             case COMMAND.ENABLE_PUSH.value:
                 user_session.enable_push = True
                 return "push is enabled. Bot may initiate conversation."
@@ -109,6 +117,11 @@ def help_doc():
     /disable-voice
         Make bot never reply with voice
     
+    /enable-long-term-memory
+        Make bot have long term memory
+    /disable-long-term-memory
+            Make bot not have long term memory
+        
     /enable-image
         Allow bot to send images
     /disable-image
