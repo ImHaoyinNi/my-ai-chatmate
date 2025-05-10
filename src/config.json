@@ -25,9 +25,9 @@
   "max_context_length": 100,
   "credits_settings" : {
     "default_user_credits": 1000,
-    "llm_cost": 0,
-    "image_generation_cost": 50,
-    "voice_message_cost": 0
+    "llm_cost": 20,
+    "image_generation_cost": 100,
+    "voice_message_cost": 10
   },
 
   "cronjob_settings": {

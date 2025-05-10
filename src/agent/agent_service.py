@@ -26,7 +26,7 @@ class AgentService:
         self.tts_api: TTSAPIInterface = aws_api_async
         self.image2text_api: Image2TextAPIInterfaceAsync = nvidia_playground_api_async
         self.speech2text_api: Speech2TextAPIInterfaceAsync = openai_api
-        self.text2image_api: Text2ImageAPIInterfaceAsync = local_image_generator_api
+        self.text2image_api: Text2ImageAPIInterfaceAsync = nvidia_playground_api_async
 
     async def generate_reply(self, user_session: UserSession, user_message: str,
                              expected_message_type: MessageType = MessageType.ANY) -> Message:
